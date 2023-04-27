@@ -6,10 +6,12 @@
   "type": "module",
   "source": "game.html",
   "scripts": {
+    "build:js": "esbuild ./js --bundle --jsx=preserve --outfile=dist/game.js",
     "start": "npx serve ."
   },
   "dependencies": {
-    "preact": "10.13.2"
+    "preact": "10.13.2",
+    "throttle-debounce": "5.0.0"
   },
   "devDependencies": {
     "esbuild": "0.17.17",
