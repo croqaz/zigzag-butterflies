@@ -59,22 +59,27 @@ pub const Game = struct {
 
 var game: Game = Game{};
 
-pub export fn main(seed: u32) void {
+pub fn main() void {
+    random.initRandom(0);
+    game.map.generateMapLvl1();
+}
+
+export fn init(seed: u32) void {
     random.initRandom(seed);
     game.map.generateMapLvl1();
     _ = game.turn(Direction.e);
     _ = game.turn(Direction.s);
 }
 
-pub export fn turn(dir: Direction) bool {
+export fn turn(dir: Direction) bool {
     return game.turn(dir);
 }
 
 // The returned pointer will be used as an offset integer to the WASM memory
-pub export fn getViewPointer() [*]u16 {
+export fn getViewPointer() [*]u16 {
     return @ptrCast([*]u16, &game.grid);
 }
 
-pub export fn getMapPointer() [*]u16 {
+export fn getMapPointer() [*]u16 {
     return @ptrCast([*]u16, &game.map.tiles);
 }

@@ -132,8 +132,23 @@ pub const Butterfly = struct {
 
     fn behave(self: *Self) bool {
         // The butterfly doesn't move all the time
-        // ...
-        _ = self;
+        if (rand().int(u4) < self.moveSpeed) {
+            return false;
+        }
+        var tries: u4 = 3;
+        while (tries > 0) : (tries -= 1) {
+            // Flip coin to determine if moving in N,S,E,W direction
+            const moveDir = @intToEnum(Direction, rand().int(u2));
+            const offsetP = moveDir.toOffset();
+            // Flip coin to determine if moving in ++ or -- direction
+            const newPos = if (rand().boolean())
+                self.xy.plus(&offsetP)
+            else
+                self.xy.minus(&offsetP);
+            if (!newPos.isValid()) continue;
+            self.xy = newPos;
+            return true;
+        }
         return false;
     }
 };

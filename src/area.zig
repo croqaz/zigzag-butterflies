@@ -2,15 +2,16 @@ const std = @import("std");
 const cfg = @import("config.zig");
 const things = @import("things.zig");
 const util = @import("util.zig");
+const Point = @import("p2d.zig").Point;
 const rand = @import("random.zig").random;
 //
-const Point = @import("p2d.zig").Point;
 const Thing = things.Thing;
 //
 // Game map/ area
 //
 pub const Area = struct {
     const Self = @This();
+    const allocator: std.mem.Allocator = std.heap.page_allocator;
 
     // 2D background tiles, flat array
     // used for rendering on position
@@ -19,7 +20,7 @@ pub const Area = struct {
     // all things on the map: actors & decor
     // used for turns & listing creatures
     // map IDX, entity mapping
-    // ents: ...
+    ents: std.AutoHashMapUnmanaged(u16, Thing) = std.AutoHashMapUnmanaged(u16, Thing){},
 
     fn randX() u16 {
         var x: u7 = rand().int(u7);
@@ -49,6 +50,12 @@ pub const Area = struct {
             const y = randY();
             self.tiles[util.idxArea(x, y)] = '"'; // 34 = char "
         }
+
+        self.ents.put(allocator, 9, Thing{ .chest = things.Chest{ .xy = Point{ .x = 9, .y = 9 } } }) catch return;
+        self.ents.put(allocator, 15, Thing{ .chest = things.Chest{ .xy = Point{ .x = 9, .y = 9 } } }) catch return;
+
+        self.ents.put(allocator, 5, Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 5, .y = 5 } } }) catch return;
+        self.ents.put(allocator, 25, Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 25, .y = 25 } } }) catch return;
     }
 
     pub fn getTileAt(self: *const Self, idx: u16) u16 {
@@ -61,14 +68,21 @@ pub const Area = struct {
     }
 
     pub fn getEntityAt(self: *Self, xy: *const Point) *Thing {
-        _ = self;
-        _ = xy;
+        const k = util.idxArea(@intCast(u16, xy.x), @intCast(u16, xy.y));
+        if (self.ents.getPtr(k)) |e| {
+            return e;
+        }
         return undefined;
     }
 
     pub fn entitiesBehave(self: *Self) void {
-        _ = self;
         // All entities on the map, act/ behave/ run their turn
-        return;
+        var iterEnts = self.ents.valueIterator();
+        while (iterEnts.next()) |e| {
+            // TODO: if response is True, check entity
+            // some entities may be destroyed after their turn
+            _ = e.behave();
+            // TODO: update position on the mapping
+        }
     }
 };
