@@ -34,7 +34,16 @@ pub const Game = struct {
         }
 
         // Render all visible entities
-        // ...
+        var iterEnts = self.map.ents.valueIterator();
+        while (iterEnts.next()) |e| {
+            if (e.isNone()) continue;
+            const xy = e.xy();
+            if (xy.isWithin(&self.vw.topLeft, &self.vw.botRight)) {
+                const tXY = xy.minus(&self.vw.topLeft);
+                const i = util.idxView(@intCast(u16, tXY.x), @intCast(u16, tXY.y));
+                self.grid[i] = e.ch();
+            }
+        }
 
         // Render Player @ ViewPort center
         const pXY = self.player.xy.minus(&self.vw.topLeft);

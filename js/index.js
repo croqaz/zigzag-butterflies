@@ -2,6 +2,17 @@ import '../style.css';
 import { render, h, Component } from 'preact';
 import { throttle } from 'throttle-debounce';
 
+const FG_COLOR = '#111';
+const COLORS = {
+  '#': '#b7ba9d',
+  "'": '#77d051',
+  '"': '#239725',
+  '.': '#535155',
+  ':': '#2d9f62',
+  'o': '#ed6294',
+  '0': '#e5e052',
+};
+
 let memory = null;
 let consoleLogBuffer = '';
 const txtDecoder = new TextDecoder();
@@ -32,15 +43,40 @@ const importObject = {
   const viewHeight = new Uint8Array(memory.buffer, exports.viewHeight.value, 1)[0];
   console.log(`View size: ${viewWidth}x${viewWidth}`);
 
-  // seed for random maps and creatures (U32)
-  const seed = Math.round(new Date() * Math.random() / 1000);
-  console.log('Random seed:', seed);
-  // important! init the game!
-  exports.init(seed);
-
   // game map grid
   let bufferOffset = exports.getMapPointer();
   const areaTiles = new Uint16Array(memory.buffer, bufferOffset, mapWidth * mapHeight);
+
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * mapWidth - 1;
+    const y = Math.random() * mapHeight - 1;
+    const z = Math.round(x + y * mapWidth);
+    areaTiles[z] = '.'.charCodeAt(0);
+  }
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * mapWidth - 1;
+    const y = Math.random() * mapHeight - 1;
+    const z = Math.round(x + y * mapWidth);
+    areaTiles[z] = ':'.charCodeAt(0);
+  }
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * mapWidth - 1;
+    const y = Math.random() * mapHeight - 1;
+    const z = Math.round(x + y * mapWidth);
+    areaTiles[z] = 'o'.charCodeAt(0);
+  }
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * mapWidth - 1;
+    const y = Math.random() * mapHeight - 1;
+    const z = Math.round(x + y * mapWidth);
+    areaTiles[z] = '0'.charCodeAt(0);
+  }
+
+  // seed for random maps and creatures (U32)
+  const seed = Math.round((new Date() * Math.random()) / 1000);
+  console.log('Random seed:', seed);
+  // important! init the game!
+  exports.init(seed);
 
   // flat rendered grid
   bufferOffset = exports.getViewPointer();
@@ -108,12 +144,14 @@ const importObject = {
         else if (ch === 'B') ch = '🦋';
         else if (ch === 'X') ch = '▣';
         else if (ch === 'x') ch = '▨';
+        const color = COLORS[ch] ? COLORS[ch] : FG_COLOR;
         return h(
           'td',
           {
             key: `x-${r + 1}${c + 1}`,
             onMouseOver: this.onMouseOver,
             onMouseLeave: this.onMouseLeave,
+            style: { color },
           },
           ch,
         );

@@ -6,7 +6,9 @@
   "type": "module",
   "source": "game.html",
   "scripts": {
+    "build:wasm": "zig build-lib src/main.zig -target wasm32-freestanding -dynamic -O ReleaseSmall --export=init --export=turn --export=getViewPointer --export=getMapPointer --export=viewWidth --export=viewHeight --export=mapWidth --export=mapHeight",
     "build:js": "esbuild ./js --bundle --jsx=preserve --outfile=dist/game.js",
+    "build": "npm run build:wasm && npm run build:js",
     "start": "npx serve ."
   },
   "dependencies": {
