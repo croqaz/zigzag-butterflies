@@ -1,0 +1,46 @@
+:root {
+	font-family: monospace;
+	font-weight: 400;
+	font-size: 18px;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	color: #131313;
+	background: #fafafa;
+}
+
+html, body, div, table {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	min-height: 99vh;
+}
+
+#app {
+	display: flex;
+	padding-top: 3.5rem;
+	margin: 0 auto;
+	max-width: 1280px;
+	align-items: center;
+	justify-content: center;
+}
+
+#gameGrid {
+	border: 0;
+	border-spacing: 0;
+}
+
+#gameGrid td {
+	width: 24px !important;
+	height: 24px !important;
+	background: #060310;
+	text-align: center;
+	cursor: pointer;
+	border: 0;
+}
+
+#gameGrid td.selected {
+	background-color: #444 !important;
+	transition: background 0.5s;
+}

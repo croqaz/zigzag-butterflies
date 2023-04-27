@@ -110,3 +110,6 @@ package-lock.json
 
 # Build folders
 build
+
+# Artefacts
+*.wasm.*
