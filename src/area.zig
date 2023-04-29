@@ -2,10 +2,11 @@ const std = @import("std");
 const cfg = @import("config.zig");
 const things = @import("things.zig");
 const util = @import("util.zig");
-const Point = @import("p2d.zig").Point;
-const rand = @import("random.zig").random;
+// const log = @import("log.zig");
 //
 const Thing = things.Thing;
+const Point = @import("p2d.zig").Point;
+const rand = @import("random.zig").random;
 //
 // Game map/ area
 //
@@ -19,15 +20,17 @@ pub const Area = struct {
 
     // all things on the map: actors & decor
     // used for turns & listing creatures
-    // map IDX, entity mapping
-    ents: std.AutoHashMapUnmanaged(u16, Thing) = std.AutoHashMapUnmanaged(u16, Thing){},
+    ents: [5]Thing = undefined,
 
-    fn randX() u16 {
+    // map coordinates -> ents array index
+    coords: std.AutoHashMapUnmanaged(usize, usize) = std.AutoHashMapUnmanaged(usize, usize){},
+
+    fn randX() u8 {
         var x: u7 = rand().int(u7);
         return if (x > cfg.mapWidth) x / 2 else @min(x, cfg.mapWidth - 1);
     }
 
-    fn randY() u16 {
+    fn randY() u8 {
         var y: u6 = rand().int(u6);
         return if (y > cfg.mapHeight) y / 2 else @min(y, cfg.mapHeight - 1);
     }
@@ -35,27 +38,37 @@ pub const Area = struct {
     pub fn generateMapLvl1(self: *Self) void {
         @setCold(true);
 
-        // more stuff will be done in JS
+        // more map gen is done in JS
 
         // draw grass
         var i: u8 = 0;
         while (i <= 100) : (i += 1) {
             const x = randX();
             const y = randY();
-            self.tiles[util.idxArea(x, y)] = 39; // char '
+            self.tiles[util.idxArea(u16, x, y)] = 39; // char '
         }
         i = 0;
         while (i <= 100) : (i += 1) {
             const x = randX();
             const y = randY();
-            self.tiles[util.idxArea(x, y)] = '"'; // 34 = char "
+            self.tiles[util.idxArea(u16, x, y)] = '"';
+        }
+        i = 0;
+        while (i <= 100) : (i += 1) {
+            const x = randX();
+            const y = randY();
+            self.tiles[util.idxArea(u16, x, y)] = '.';
         }
 
-        self.ents.put(allocator, 9, Thing{ .chest = things.Chest{ .xy = Point{ .x = 9, .y = 9 } } }) catch return;
-        self.ents.put(allocator, 15, Thing{ .chest = things.Chest{ .xy = Point{ .x = 9, .y = 9 } } }) catch return;
+        i = 0;
+        self.ents[i] = Thing{ .chest = things.Chest{ .xy = Point{ .x = 9, .y = 9 } } };
+        i += 1;
+        self.ents[i] = Thing{ .chest = things.Chest{ .xy = Point{ .x = 18, .y = 18 } } };
 
-        self.ents.put(allocator, 5, Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 5, .y = 5 } } }) catch return;
-        self.ents.put(allocator, 25, Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 25, .y = 25 } } }) catch return;
+        i += 1;
+        self.ents[i] = Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 5, .y = 5 } } };
+        i += 1;
+        self.ents[i] = Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 25, .y = 25 } } };
     }
 
     pub fn getTileAt(self: *const Self, idx: u16) u16 {
@@ -67,22 +80,27 @@ pub const Area = struct {
         }
     }
 
-    pub fn getEntityAt(self: *Self, xy: *const Point) *Thing {
-        const k = util.idxArea(@intCast(u16, xy.x), @intCast(u16, xy.y));
-        if (self.ents.getPtr(k)) |e| {
-            return e;
+    pub fn interactAt(self: *Self, xy: *const Point) bool {
+        const k = util.idxArea(u16, xy.x, xy.y);
+        const idx = self.coords.get(k);
+        if (idx) |i| {
+            return self.ents[i].interact();
         }
         return undefined;
     }
 
     pub fn entitiesBehave(self: *Self) void {
+        self.coords.clearAndFree(allocator);
         // All entities on the map, act/ behave/ run their turn
-        var iterEnts = self.ents.valueIterator();
-        while (iterEnts.next()) |e| {
+        for (&self.ents, 0..) |*e, i| {
             // TODO: if response is True, check entity
             // some entities may be destroyed after their turn
-            _ = e.behave();
-            // TODO: update position on the mapping
+            _ = e.*.behave();
+            // update position on the map
+            const xy = e.xy();
+            const k = util.idxArea(u16, xy.x, xy.y);
+            self.coords.put(allocator, k, i) catch continue;
         }
+        // TODO: if entities have behaved, return True, to force re-render
     }
 };

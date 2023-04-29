@@ -4,10 +4,11 @@ const p2d = @import("p2d.zig");
 const random = @import("random.zig");
 const things = @import("things.zig");
 const util = @import("util.zig");
-
+// const log = @import("log.zig");
+//
 const Area = @import("area.zig").Area;
 const ViewPort = @import("view.zig").ViewPort;
-
+//
 const Direction = p2d.Direction;
 const Player = things.Player;
 const Point = p2d.Point;
@@ -27,27 +28,26 @@ pub const Game = struct {
         var gridIndex: usize = 0;
         for (@intCast(u16, self.vw.topLeft.y)..@intCast(u16, self.vw.botRight.y)) |y| {
             for (@intCast(u16, self.vw.topLeft.x)..@intCast(u16, self.vw.botRight.x)) |x| {
-                const i = util.idxArea(@intCast(u16, x), @intCast(u16, y));
+                // TODO: map render @ x,y, would return Entity or Background!
+                const i = util.idxArea(u16, @intCast(i16, x), @intCast(i16, y));
                 self.grid[gridIndex] = self.map.getTileAt(i);
                 gridIndex += 1;
             }
         }
 
         // Render all visible entities
-        var iterEnts = self.map.ents.valueIterator();
-        while (iterEnts.next()) |e| {
+        for (&self.map.ents) |*e| {
             if (e.isNone()) continue;
             const xy = e.xy();
             if (xy.isWithin(&self.vw.topLeft, &self.vw.botRight)) {
                 const tXY = xy.minus(&self.vw.topLeft);
-                const i = util.idxView(@intCast(u16, tXY.x), @intCast(u16, tXY.y));
-                self.grid[i] = e.ch();
+                self.grid[util.idxView(u16, tXY.x, tXY.y)] = e.ch();
             }
         }
 
         // Render Player @ ViewPort center
         const pXY = self.player.xy.minus(&self.vw.topLeft);
-        self.grid[util.idxView(@intCast(u16, pXY.x), @intCast(u16, pXY.y))] = self.player.ch;
+        self.grid[util.idxView(u16, pXY.x, pXY.y)] = self.player.ch;
     }
 
     pub fn turn(self: *Game, dir: Direction) bool {
@@ -58,9 +58,13 @@ pub const Game = struct {
         // If there are entities on map at the new point,
         // interact with the entity!! and if OK, player and view can move
         // Null entities always return OK on interact
-        playerMoved = self.player.tryMove(newCenter) and
-            game.vw.slideView(offsetP);
+        const ok = self.map.interactAt(&newCenter);
+        if (ok) {
+            playerMoved = self.player.tryMove(newCenter) and
+                game.vw.slideView(offsetP);
+        }
 
+        self.map.entitiesBehave();
         self.render();
         return playerMoved;
     }

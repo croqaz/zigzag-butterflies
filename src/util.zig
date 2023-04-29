@@ -1,15 +1,11 @@
 const cfg = @import("config.zig");
 
-pub inline fn clamp(n: u16, max: u16) u16 {
-    return @min(n, max);
+pub inline fn idxArea(comptime T: type, x: i16, y: i16) T {
+    const z = @intCast(T, x) + @intCast(T, y) * cfg.mapWidth;
+    return @min(z, cfg.mapSize);
 }
 
-pub inline fn idxArea(x: u16, y: u16) u16 {
-    const z = x + y * cfg.mapWidth;
-    return clamp(z, cfg.mapSize);
-}
-
-pub inline fn idxView(x: u16, y: u16) u16 {
-    const z = x + y * cfg.viewWidth;
-    return clamp(z, cfg.viewSize);
+pub inline fn idxView(comptime T: type, x: i16, y: i16) T {
+    const z = @intCast(T, x) + @intCast(T, y) * cfg.viewWidth;
+    return @min(z, cfg.viewSize);
 }

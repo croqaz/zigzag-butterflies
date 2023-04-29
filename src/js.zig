@@ -25,6 +25,6 @@ pub const Console = struct {
     }
 
     pub fn logErr(comptime format: []const u8, args: anytype) void {
-        log("Error :" ++ format, args);
+        log("Error: " ++ format, args);
     }
 };

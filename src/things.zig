@@ -1,11 +1,11 @@
 const std = @import("std");
 const log = @import("log.zig");
 const p2d = @import("p2d.zig");
-const rand = @import("random.zig").random;
 //
-const Direction = p2d.Direction;
-const Point = p2d.Point;
 const String = []const u8;
+const Point = p2d.Point;
+const Direction = p2d.Direction;
+const rand = @import("random.zig").random;
 //
 pub const Player = struct {
     const Self = @This();
@@ -96,7 +96,7 @@ pub const Chest = struct {
     fn interact(self: *Self) bool {
         // open/ close chest
         if (!self.open) {
-            // log.logMsg("You open a chest!", .{});
+            log.logMsg("You open a chest!", .{});
             self.open = true;
             self.ch = 'x';
         }
@@ -125,7 +125,7 @@ pub const Butterfly = struct {
 
     fn interact(self: Self) bool {
         // calculate if the player can catch it
-        // log.logMsg("You touch a butterfly!", .{});
+        log.logMsg("You touch a butterfly!", .{});
         _ = self;
         return true;
     }

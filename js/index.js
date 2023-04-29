@@ -13,6 +13,16 @@ const COLORS = {
   '0': '#e5e052',
 };
 
+function nrToChar(nr) {
+  // if (nr > 250 || nr < 10) nr = 39;
+  let ch = String.fromCharCode(nr);
+  if (!ch.trim()) ch = "'";
+  else if (ch === 'B') ch = '🦋';
+  else if (ch === 'X') ch = '▣';
+  else if (ch === 'x') ch = '▨';
+  return ch;
+}
+
 let memory = null;
 let consoleLogBuffer = '';
 const txtDecoder = new TextDecoder();
@@ -139,11 +149,7 @@ const importObject = {
       }
 
       const gridCol = (nr, c, r) => {
-        let ch = String.fromCharCode(nr);
-        if (!ch.trim()) ch = "'";
-        else if (ch === 'B') ch = '🦋';
-        else if (ch === 'X') ch = '▣';
-        else if (ch === 'x') ch = '▨';
+        const ch = nrToChar(nr);
         const color = COLORS[ch] ? COLORS[ch] : FG_COLOR;
         return h(
           'td',
