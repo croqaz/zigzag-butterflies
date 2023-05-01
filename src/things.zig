@@ -21,7 +21,6 @@ pub const Player = struct {
 
     pub fn tryMove(self: *Self, xy: Point) bool {
         if (!xy.isValid()) return false;
-        if (self.xy.eq(&xy)) return false;
         // Get thing/ entity walkable and interact with it
         // ..
         // Check if we can walk on the tile and simply walk onto it

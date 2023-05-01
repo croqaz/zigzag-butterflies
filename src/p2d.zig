@@ -1,17 +1,15 @@
 const cfg = @import("config.zig");
 
 pub const Direction = enum(c_int) {
-    n,
-    // Up,
-    s,
-    // Down,
-    e,
-    // Right,
-    w,
-    // Left,
+    x = -1, // None
+    n = 0, // Up
+    s = 1, // Down
+    e = 2, // Right
+    w = 3, // Left
 
     pub fn toOffset(self: Direction) Point {
         return switch (self) {
+            Direction.x => Point{},
             // try to move Nord, up
             Direction.n => Point{ .x = 0, .y = -1 },
             // try to move South, down

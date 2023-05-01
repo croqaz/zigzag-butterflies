@@ -102,8 +102,10 @@ const importObject = {
     onKeyPressed = throttle(
       10,
       (ev) => {
-        let ok = true;
-        if (ev.key === 'w') {
+        let ok = false;
+        if (ev.key === ' ') {
+          ok = turn(-1);
+        } else if (ev.key === 'w') {
           // try to move Nord, up
           ok = turn(0);
         } else if (ev.key === 's') {
@@ -113,8 +115,6 @@ const importObject = {
           ok = turn(2);
         } else if (ev.key === 'a') {
           ok = turn(3);
-        } else {
-          ok = false;
         }
         if (ok) this.setState({ turns: this.state.turns + 1 });
       },
