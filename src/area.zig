@@ -20,18 +20,18 @@ pub const Area = struct {
 
     // all things on the map: actors & decor
     // used for turns & listing creatures
-    ents: [5]Thing = undefined,
+    ents: [16]Thing = undefined,
 
     // map coordinates -> ents array index
     coords: std.AutoHashMapUnmanaged(usize, usize) = std.AutoHashMapUnmanaged(usize, usize){},
 
     fn randX() u8 {
-        var x: u7 = rand().int(u7);
+        const x = rand().int(u7);
         return if (x > cfg.mapWidth) x / 2 else @min(x, cfg.mapWidth - 1);
     }
 
     fn randY() u8 {
-        var y: u6 = rand().int(u6);
+        const y = rand().int(u6);
         return if (y > cfg.mapHeight) y / 2 else @min(y, cfg.mapHeight - 1);
     }
 
@@ -42,33 +42,47 @@ pub const Area = struct {
 
         // draw grass
         var i: u8 = 0;
-        while (i <= 100) : (i += 1) {
+        while (i < 100) : (i += 1) {
             const x = randX();
             const y = randY();
             self.tiles[util.idxArea(u16, x, y)] = 39; // char '
         }
         i = 0;
-        while (i <= 100) : (i += 1) {
+        while (i < 100) : (i += 1) {
             const x = randX();
             const y = randY();
             self.tiles[util.idxArea(u16, x, y)] = '"';
         }
         i = 0;
-        while (i <= 100) : (i += 1) {
+        while (i < 100) : (i += 1) {
             const x = randX();
             const y = randY();
             self.tiles[util.idxArea(u16, x, y)] = '.';
         }
 
+        const chestWithNet = rand().int(u3);
+        var j: u8 = 0;
         i = 0;
-        self.ents[i] = Thing{ .chest = things.Chest{ .xy = Point{ .x = 9, .y = 9 } } };
-        i += 1;
-        self.ents[i] = Thing{ .chest = things.Chest{ .xy = Point{ .x = 18, .y = 18 } } };
+        while (i < std.math.maxInt(u3)) : (i += 1) {
+            // TODO: random map position
+            const x = randX();
+            const y = randY();
+            var chest = Thing{ .chest = things.Chest{ .xy = Point{ .x = x, .y = y } } };
+            if (i == chestWithNet) {
+                chest.chest.hasNet = true;
+            }
+            self.ents[j] = chest;
+            j += 1;
+        }
 
-        i += 1;
-        self.ents[i] = Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 5, .y = 5 } } };
-        i += 1;
-        self.ents[i] = Thing{ .butter = things.Butterfly{ .xy = Point{ .x = 25, .y = 25 } } };
+        i = 0;
+        while (i < std.math.maxInt(u3)) : (i += 1) {
+            // TODO: random map position
+            const x = randX();
+            const y = randY();
+            self.ents[j] = Thing{ .butter = things.Butterfly{ .xy = Point{ .x = x, .y = y } } };
+            j += 1;
+        }
     }
 
     pub fn getTileAt(self: *const Self, idx: u16) u16 {
@@ -80,19 +94,24 @@ pub const Area = struct {
         }
     }
 
-    pub fn interactAt(self: *Self, xy: *const Point) bool {
+    pub fn interactAt(self: *Self, xy: *const Point, player: *things.Player) bool {
         const k = util.idxArea(u16, xy.x, xy.y);
         const idx = self.coords.get(k);
         if (idx) |i| {
-            return self.ents[i].interact();
+            const ok: bool = self.ents[i].interact(player);
+            return ok;
         }
-        return undefined;
+        return true;
     }
 
     pub fn entitiesBehave(self: *Self) void {
         self.coords.clearAndFree(allocator);
         // All entities on the map, act/ behave/ run their turn
         for (&self.ents, 0..) |*e, i| {
+            if (e.isDead()) {
+                self.ents[i] = Thing{ .none = things.None{} };
+                continue;
+            }
             // TODO: if response is True, check entity
             // some entities may be destroyed after their turn
             _ = e.*.behave();

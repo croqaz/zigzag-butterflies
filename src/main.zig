@@ -58,7 +58,7 @@ pub const Game = struct {
         // If there are entities on map at the new point,
         // interact with the entity!! and if OK, player and view can move
         // Null entities always return OK on interact
-        const ok = self.map.interactAt(&newCenter);
+        const ok = self.map.interactAt(&newCenter, &self.player);
         if (ok) {
             playerMoved = self.player.tryMove(newCenter) and
                 game.vw.slideView(offsetP);

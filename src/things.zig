@@ -56,20 +56,26 @@ pub const Thing = union(enum) {
         };
     }
 
-    pub fn interact(self: *Self) bool {
+    pub fn isDead(self: *Self) bool {
         return switch (self.*) {
-            Self.chest => |*s| s.*.interact(),
-            Self.butter => |*s| s.*.interact(),
+            Self.butter => |*s| s.*.dead,
+            else => false,
+        };
+    }
+
+    pub fn interact(self: *Self, player: *Player) bool {
+        return switch (self.*) {
+            Self.chest => |*s| s.*.interact(player),
+            Self.butter => |*s| s.*.interact(player),
             else => true, // always move
         };
     }
 
-    pub fn behave(self: *Self) bool {
-        return switch (self.*) {
-            Self.chest => |*s| s.*.behave(),
+    pub fn behave(self: *Self) void {
+        switch (self.*) {
             Self.butter => |*s| s.*.behave(),
-            else => false,
-        };
+            else => {},
+        }
     }
 };
 
@@ -93,18 +99,19 @@ pub const Chest = struct {
     open: bool = false,
     hasNet: bool = false,
 
-    fn interact(self: *Self) bool {
+    fn interact(self: *Self, player: *Player) bool {
         // open/ close chest
         if (!self.open) {
-            log.logMsg("You open a chest!", .{});
-            self.open = true;
+            if (self.hasNet) {
+                log.logMsg("You find a butterfly net!", .{});
+                player.foundNet = true;
+            } else {
+                log.logMsg("The chest is empty.", .{});
+            }
+            self.open = false;
             self.ch = 'x';
         }
         return true;
-    }
-    fn behave(self: Self) bool {
-        _ = self;
-        return false;
     }
 };
 
@@ -118,22 +125,30 @@ pub const Butterfly = struct {
     // descrip: string,
     xy: Point = Point{ .x = 0, .y = 0 },
 
+    dead: bool = false,
     // how fast it can move every turn
-    moveSpeed: u4 = 5,
+    moveSpeed: u4 = 8,
     // how likely you can catch it
-    agility: u4 = 5,
+    agility: f32 = 6,
 
-    fn interact(self: Self) bool {
-        // calculate if the player can catch it
-        log.logMsg("You touch a butterfly!", .{});
-        _ = self;
+    fn interact(self: *Self, player: *Player) bool {
+        // The player tries to catch this butterfly
+        const rnd = @intToFloat(f32, rand().int(u4));
+        const chance = if (player.foundNet == true) rnd else rnd / 2;
+        if (chance < self.agility) {
+            log.logMsg("You fail to catch a butterfly!", .{});
+            return false;
+        } else {
+            log.logMsg("You catch a butterfly!", .{});
+            self.dead = true;
+        }
         return true;
     }
 
-    fn behave(self: *Self) bool {
+    fn behave(self: *Self) void {
         // The butterfly doesn't move all the time
         if (rand().int(u4) < self.moveSpeed) {
-            return false;
+            return;
         }
         var tries: u4 = 3;
         while (tries > 0) : (tries -= 1) {
@@ -147,8 +162,7 @@ pub const Butterfly = struct {
                 self.xy.minus(&offsetP);
             if (!newPos.isValid()) continue;
             self.xy = newPos;
-            return true;
+            break;
         }
-        return false;
     }
 };
