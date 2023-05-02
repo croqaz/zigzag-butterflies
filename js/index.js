@@ -14,7 +14,9 @@ const COLORS = {
 };
 
 function nrToChar(nr) {
-  // if (nr > 250 || nr < 10) nr = 39;
+  // all numbers should be ASCII,
+  // if they're not, it's an error and I want to see it
+  // if (nr > 250 || nr < 10) !!!
   let ch = String.fromCharCode(nr);
   if (!ch.trim()) ch = "'";
   else if (ch === 'B') ch = '🦋';
@@ -29,6 +31,9 @@ const txtDecoder = new TextDecoder();
 
 const importObject = {
   env: {
+    gameLog: function (ptr, len) {
+      console.log( txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len)) );
+    },
     consoleLog: function (ptr, len) {
       consoleLogBuffer += txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len));
     },
@@ -54,6 +59,7 @@ const importObject = {
   console.log(`View size: ${viewWidth}x${viewWidth}`);
 
   // game map grid
+  // hopefully this doesn't push the pointer in memory after the game is initialized
   let bufferOffset = exports.getMapPointer();
   const areaTiles = new Uint16Array(memory.buffer, bufferOffset, mapWidth * mapHeight);
 
@@ -89,6 +95,7 @@ const importObject = {
   exports.init(seed);
 
   // flat rendered grid
+  // this can only be called after the game was initialized
   bufferOffset = exports.getViewPointer();
   const flatTiles = new Uint16Array(memory.buffer, bufferOffset, viewWidth * viewHeight);
   bufferOffset = null;
@@ -104,6 +111,7 @@ const importObject = {
       (ev) => {
         let ok = false;
         if (ev.key === ' ') {
+          // wait 1 turn without moving
           ok = turn(-1);
         } else if (ev.key === 'w') {
           // try to move Nord, up
@@ -139,6 +147,7 @@ const importObject = {
 
     render() {
       const grid = [];
+      // convert the flat grid to a 2D array
       for (let r = 0; r < viewHeight; r++) {
         const row = [];
         for (let c = 0; c < viewWidth; c++) {
@@ -154,7 +163,7 @@ const importObject = {
         return h(
           'td',
           {
-            key: `x-${r + 1}${c + 1}`,
+            key: `x-${r + 1}-${c + 1}`,
             onMouseOver: this.onMouseOver,
             onMouseLeave: this.onMouseLeave,
             style: { color },

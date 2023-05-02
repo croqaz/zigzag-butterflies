@@ -2,6 +2,7 @@ const std = @import("std");
 
 // Functions exported from JS env
 pub const Imports = struct {
+    pub extern fn gameLog(ptr: [*]const u8, len: usize) void;
     extern fn consoleLog(ptr: [*]const u8, len: usize) void;
     extern fn consoleFlush() void;
 };

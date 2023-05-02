@@ -9,7 +9,6 @@ pub const Direction = enum(c_int) {
 
     pub fn toOffset(self: Direction) Point {
         return switch (self) {
-            Direction.x => Point{},
             // try to move Nord, up
             Direction.n => Point{ .x = 0, .y = -1 },
             // try to move South, down
@@ -18,6 +17,8 @@ pub const Direction = enum(c_int) {
             Direction.e => Point{ .x = 1, .y = 0 },
             // try to move W, left
             Direction.w => Point{ .x = -1, .y = 0 },
+            // no movement
+            else => Point{},
         };
     }
 };

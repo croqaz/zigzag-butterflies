@@ -12,6 +12,7 @@ const rand = @import("random.zig").random;
 //
 pub const Area = struct {
     const Self = @This();
+    // TODO :: this can be improved!
     const allocator: std.mem.Allocator = std.heap.page_allocator;
 
     // 2D background tiles, flat array

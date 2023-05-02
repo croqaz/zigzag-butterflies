@@ -4,6 +4,12 @@ const js = @import("js.zig");
 const builtin = @import("builtin");
 const Target = std.Target;
 
+// Push text in the game messages element
+pub fn gameLog(bytes: []const u8) void {
+    js.Imports.gameLog(bytes.ptr, bytes.len);
+}
+
+// Debug log message; Shouldn't be used in production;
 pub fn logMsg(comptime format: []const u8, args: anytype) void {
     if (builtin.os.tag == Target.Os.Tag.freestanding) {
         js.Console.log(format, args);
@@ -14,6 +20,7 @@ pub fn logMsg(comptime format: []const u8, args: anytype) void {
     }
 }
 
+// Debug log error; Shouldn't be used in production;
 pub fn logErr(comptime format: []const u8, args: anytype) void {
     if (builtin.os.tag == Target.Os.Tag.freestanding) {
         js.Console.logErr(format, args);

@@ -32,7 +32,7 @@ pub const ViewPort = struct {
         // Make sure we still have enough space to fit an entire game screen
         topLeftY = @min(topLeftY, cfg.mapHeight - cfg.viewHeight);
 
-        // Make sure the top point is valid! The bottom point is close and will be valid
+        // Make sure the top point is valid! The bottom point is close enough and will be valid
         const topP = Point{ .x = topLeftX, .y = topLeftY };
         if (topP.isValid()) {
             // Update internal positioning

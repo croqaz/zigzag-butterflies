@@ -20,9 +20,10 @@ pub const Game = struct {
     vw: ViewPort = ViewPort{},
     // player instance
     player: Player = Player{},
-    // exported public grid
+    // exported rendered grid
     grid: [cfg.viewSize]u16 = [_]u16{32} ** cfg.viewSize,
 
+    // Update rendered grid
     pub fn render(self: *Game) void {
         // Iterate through all visible map cells
         var gridIndex: usize = 0;
@@ -50,33 +51,38 @@ pub const Game = struct {
         self.grid[util.idxView(u16, pXY.x, pXY.y)] = self.player.ch;
     }
 
+    // Player moves to a direction (or waits)
+    // player interacts with entities at new point;
+    // all entities take their turn to behave;
     pub fn turn(self: *Game, dir: Direction) bool {
         const offsetP = dir.toOffset();
         const newCenter = self.player.xy.plus(&offsetP);
-        var playerMoved: bool = true;
+        var viewMoved: bool = true;
 
         // If there are entities on map at the new point,
-        // interact with the entity!! and if OK, player and view can move
+        // interact with the entity!! and if OK, player & view can move
         // Null entities always return OK on interact
         const ok = self.map.interactAt(&newCenter, &self.player);
         if (ok) {
-            playerMoved = self.player.tryMove(newCenter) and
+            viewMoved = self.player.tryMove(newCenter) and
                 game.vw.slideView(offsetP);
         }
 
         self.map.entitiesBehave();
         self.render();
-        return playerMoved;
+        return viewMoved;
     }
 };
 
 var game: Game = Game{};
 
+// Zig app entry
 pub fn main() void {
     random.initRandom(0);
     game.map.generateMapLvl1();
 }
 
+// WASM lib entry
 export fn init(seed: u32) void {
     random.initRandom(seed);
     game.map.generateMapLvl1();

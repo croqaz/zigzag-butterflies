@@ -1,6 +1,6 @@
 const std = @import("std");
-const log = @import("log.zig");
 const p2d = @import("p2d.zig");
+const log = @import("log.zig");
 //
 const String = []const u8;
 const Point = p2d.Point;
@@ -30,6 +30,7 @@ pub const Player = struct {
     }
 };
 
+// Super-class wrapper hack, to overcome the lack of struct inheritance
 pub const Thing = union(enum) {
     const Self = @This();
     none: None,
@@ -63,6 +64,8 @@ pub const Thing = union(enum) {
     }
 
     pub fn interact(self: *Self, player: *Player) bool {
+        // When interact returns True, the other creature can move over
+        // if False, the entity is like a block that cannot be steped over
         return switch (self.*) {
             Self.chest => |*s| s.*.interact(player),
             Self.butter => |*s| s.*.interact(player),
@@ -78,7 +81,8 @@ pub const Thing = union(enum) {
     }
 };
 
-// Null entity hack
+// Null entity hack; This is the "undefined" Thing;
+// When an entity dies, it becomes Null
 pub const None = struct {
     ch: u8 = 0,
     name: String = "",
@@ -102,10 +106,10 @@ pub const Chest = struct {
         // open/ close chest
         if (!self.open) {
             if (self.hasNet) {
-                log.logMsg("You find a butterfly net!", .{});
+                log.gameLog("You find a butterfly net!");
                 player.foundNet = true;
             } else {
-                log.logMsg("The chest is empty.", .{});
+                log.gameLog("The chest is empty.");
             }
             self.open = false;
             self.ch = 'x';
@@ -135,10 +139,10 @@ pub const Butterfly = struct {
         const rnd = @intToFloat(f32, rand().int(u4));
         const chance = if (player.foundNet == true) rnd else rnd / 2;
         if (chance < self.agility) {
-            log.logMsg("You fail to catch a butterfly!", .{});
+            log.gameLog("You fail to catch a butterfly!");
             return false;
         } else {
-            log.logMsg("You catch a butterfly!", .{});
+            log.gameLog("You catch a butterfly!");
             self.dead = true;
         }
         return true;

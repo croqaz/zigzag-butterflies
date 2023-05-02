@@ -1,5 +1,5 @@
 const rand = @import("std").rand;
-const RndGen = rand.DefaultPrng;
+const RndGen = rand.Xoroshiro128;
 var prng: RndGen = undefined;
 
 pub fn initRandom(seed: u32) void {
