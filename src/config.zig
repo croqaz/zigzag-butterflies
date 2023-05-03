@@ -4,6 +4,6 @@ pub export const mapHeight: u8 = 60;
 pub const mapSize: u16 = @as(u16, mapHeight) * @as(u16, mapWidth);
 
 // ViewPort sizes
-pub export const viewWidth: u8 = 28;
-pub export const viewHeight: u8 = 16;
+pub export const viewWidth: u8 = 36;
+pub export const viewHeight: u8 = 18;
 pub const viewSize: u16 = @as(u16, viewHeight) * @as(u16, viewWidth);

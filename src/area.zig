@@ -43,22 +43,10 @@ pub const Area = struct {
 
         // draw grass
         var i: u8 = 0;
-        while (i < 100) : (i += 1) {
+        while (i < 250) : (i += 1) {
             const x = randX();
             const y = randY();
             self.tiles[util.idxArea(u16, x, y)] = 39; // char '
-        }
-        i = 0;
-        while (i < 100) : (i += 1) {
-            const x = randX();
-            const y = randY();
-            self.tiles[util.idxArea(u16, x, y)] = '"';
-        }
-        i = 0;
-        while (i < 100) : (i += 1) {
-            const x = randX();
-            const y = randY();
-            self.tiles[util.idxArea(u16, x, y)] = '.';
         }
 
         const chestWithNet = rand().int(u3);

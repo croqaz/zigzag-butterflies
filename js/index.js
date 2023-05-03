@@ -4,13 +4,14 @@ import { throttle } from 'throttle-debounce';
 
 const FG_COLOR = '#111';
 const COLORS = {
-  '#': '#b7ba9d',
+  '#': '#575a3f',
   "'": '#77d051',
   '"': '#239725',
   '.': '#535155',
   ':': '#2d9f62',
   'o': '#ed6294',
-  '0': '#e5e052',
+  'O': '#90c1f9',
+  '0': '#f3e744',
 };
 
 function nrToChar(nr) {
@@ -32,7 +33,7 @@ const txtDecoder = new TextDecoder();
 const importObject = {
   env: {
     gameLog: function (ptr, len) {
-      console.log( txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len)) );
+      console.log(txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len)));
     },
     consoleLog: function (ptr, len) {
       consoleLogBuffer += txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len));
@@ -56,18 +57,24 @@ const importObject = {
 
   const viewWidth = new Uint8Array(memory.buffer, exports.viewWidth.value, 1)[0];
   const viewHeight = new Uint8Array(memory.buffer, exports.viewHeight.value, 1)[0];
-  console.log(`View size: ${viewWidth}x${viewWidth}`);
+  console.log(`View size: ${viewWidth}x${viewHeight}`);
 
   // game map grid
   // hopefully this doesn't push the pointer in memory after the game is initialized
   let bufferOffset = exports.getMapPointer();
   const areaTiles = new Uint16Array(memory.buffer, bufferOffset, mapWidth * mapHeight);
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 200; i++) {
     const x = Math.random() * mapWidth - 1;
     const y = Math.random() * mapHeight - 1;
     const z = Math.round(x + y * mapWidth);
     areaTiles[z] = '.'.charCodeAt(0);
+  }
+  for (let i = 0; i < 200; i++) {
+    const x = Math.random() * mapWidth - 1;
+    const y = Math.random() * mapHeight - 1;
+    const z = Math.round(x + y * mapWidth);
+    areaTiles[z] = '"'.charCodeAt(0);
   }
   for (let i = 0; i < 100; i++) {
     const x = Math.random() * mapWidth - 1;
@@ -75,17 +82,29 @@ const importObject = {
     const z = Math.round(x + y * mapWidth);
     areaTiles[z] = ':'.charCodeAt(0);
   }
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 150; i++) {
     const x = Math.random() * mapWidth - 1;
     const y = Math.random() * mapHeight - 1;
     const z = Math.round(x + y * mapWidth);
     areaTiles[z] = 'o'.charCodeAt(0);
   }
-  for (let i = 0; i < 100; i++) {
-    const x = Math.random() * mapWidth - 1;
-    const y = Math.random() * mapHeight - 1;
+  for (let i = 0; i < 50; i++) {
+    const x = 10 + Math.random() * mapWidth - 20;
+    const y = 20 + Math.random() * mapHeight - 20;
+    const z = Math.round(x + y * mapWidth);
+    areaTiles[z] = 'O'.charCodeAt(0);
+  }
+  for (let i = 0; i < 50; i++) {
+    const x = 10 + Math.random() * mapWidth - 20;
+    const y = 20 + Math.random() * mapHeight - 20;
     const z = Math.round(x + y * mapWidth);
     areaTiles[z] = '0'.charCodeAt(0);
+  }
+  for (let i = 0; i < 50; i++) {
+    const x = 10 + Math.random() * mapWidth - 20;
+    const y = 20 + Math.random() * mapHeight - 20;
+    const z = Math.round(x + y * mapWidth);
+    areaTiles[z] = '#'.charCodeAt(0);
   }
 
   // seed for random maps and creatures (U32)
@@ -107,7 +126,7 @@ const importObject = {
     state = { turns: 0 };
 
     onKeyPressed = throttle(
-      10,
+      50,
       (ev) => {
         let ok = false;
         if (ev.key === ' ') {
@@ -177,13 +196,17 @@ const importObject = {
           { key: `"y-${r + 1}` },
           row.map((cell, c) => gridCol(cell, c, r)),
         );
-      return h('table', { id: 'gameGrid' }, grid.map(gridRow));
+      return h('table', { id: 'game', tabIndex: 0 }, grid.map(gridRow));
     }
   }
 
   class App extends Component {
     render() {
-      return h('main', { id: 'app', tabIndex: 0 }, h(GameGrid, { props: this.state }));
+      return [
+        h(GameGrid, { props: this.state }),
+        h('div', { id: 'score' }, [h('h3', {}, 'Butterflies')]),
+        h('div', { id: 'logs' }, [h('span', {}, 'Catch all the butterflies!')]),
+      ];
     }
   }
 

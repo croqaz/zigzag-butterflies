@@ -14,33 +14,58 @@ html, body, div, table {
 }
 
 body {
-	min-height: 99vh;
+	min-height: 99.9vh;
+	display: grid;
+	background-color: #f0f0f0;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-rows: repeat(2, 1fr);
+	grid-template-areas:
+		"a b"
+		"c d";
 }
 
-#app {
-	display: flex;
-	padding-top: 3.5rem;
-	margin: 0 auto;
-	max-width: 1280px;
-	align-items: center;
-	justify-content: center;
-}
-
-#gameGrid {
-	border: 0;
+#game {
+	grid-area: a;
 	border-spacing: 0;
+	border-right: 1px solid #999;
 }
-
-#gameGrid td {
-	width: 24px !important;
-	height: 24px !important;
+#game tr {
+	height: 30px !important;
+}
+#game td {
+	background-color: #f0fff0;
+	min-width: 30px !important;
 	text-align: center;
 	font-weight: 900;
 	cursor: pointer;
-	border: 0;
+}
+#game td.selected {
+	background-color: #aea !important;
+	transition: background 0.5s;
 }
 
-#gameGrid td.selected {
-	background-color: #ddd !important;
-	transition: background 0.5s;
+#score {
+	grid-area: b;
+	padding: 0 0 3px 3px;
+}
+#score h3, #help h3 {
+	margin: 0 0 5px 0;
+}
+
+#logs {
+	grid-area: c;
+	overflow-y: scroll;
+	padding: 0 0 3px 3px;
+	border-top: 1px solid #999;
+	border-right: 1px solid #999;
+}
+#help {
+	grid-area: d;
+	position: relative;
+	padding: 0 0 3px 3px;
+	border-top: 1px solid #999;
+}
+#copyright {
+	position: absolute;
+	bottom: 5px;
 }
