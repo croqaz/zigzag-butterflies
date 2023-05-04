@@ -17,8 +17,8 @@ const COLORS = {
 function nrToChar(nr) {
   // all numbers should be ASCII,
   // if they're not, it's an error and I want to see it
-  // if (nr > 250 || nr < 10) !!!
   let ch = String.fromCharCode(nr);
+  if (nr > 250 || nr < 10) console.error(`Received invalid CH: ${nr} = ${ch}!`)
   if (!ch.trim()) ch = "'";
   else if (ch === 'B') ch = '🦋';
   else if (ch === 'X') ch = '▣';
@@ -123,24 +123,42 @@ const importObject = {
   console.log('WASM memory MB:', wasmMemorySz);
 
   class GameGrid extends Component {
-    state = { turns: 0 };
+    state = { turns: 0, auto: false };
 
     onKeyPressed = throttle(
       50,
       (ev) => {
+        // large switch to handle user input
         let ok = false;
-        if (ev.key === ' ') {
+        if (ev.shiftKey && ev.key === ' ') {
+          // wait until stopped
+          if (this.state.auto) {
+            clearInterval(this.state.auto);
+            this.setState({ auto: false });
+          } else {
+            const i = setInterval(() => {
+              ok = turn(-1);
+              if (ok) this.setState({ turns: this.state.turns + 1 });
+            }, 100);
+            this.setState({ auto: i });
+          }
+          return;
+        } else if (ev.key === ' ') {
+          if (this.state.auto) {
+            clearInterval(this.state.auto);
+            this.setState({ auto: false });
+          }
           // wait 1 turn without moving
           ok = turn(-1);
-        } else if (ev.key === 'w') {
+        } else if (ev.key === 'ArrowUp' || ev.key === 'w' || ev.key === 'W') {
           // try to move Nord, up
           ok = turn(0);
-        } else if (ev.key === 's') {
+        } else if (ev.key === 'ArrowDown' || ev.key === 's' || ev.key === 'S') {
           // try to move South, down
           ok = turn(1);
-        } else if (ev.key === 'd') {
+        } else if (ev.key === 'ArrowRight' || ev.key === 'd' || ev.key === 'D') {
           ok = turn(2);
-        } else if (ev.key === 'a') {
+        } else if (ev.key === 'ArrowLeft' || ev.key === 'a' || ev.key === 'A') {
           ok = turn(3);
         }
         if (ok) this.setState({ turns: this.state.turns + 1 });
@@ -204,7 +222,7 @@ const importObject = {
     render() {
       return [
         h(GameGrid, { props: this.state }),
-        h('div', { id: 'score' }, [h('h3', {}, 'Butterflies')]),
+        h('div', { id: 'score' }, [h('h3', {}, 'Butterflies'), h('p', {}, 'None')]),
         h('div', { id: 'logs' }, [h('span', {}, 'Catch all the butterflies!')]),
       ];
     }

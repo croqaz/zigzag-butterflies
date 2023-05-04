@@ -47,6 +47,7 @@ body {
 #score {
 	grid-area: b;
 	padding: 0 0 3px 3px;
+	background-color: #ffffee;
 }
 #score h3, #help h3 {
 	margin: 0 0 5px 0;
