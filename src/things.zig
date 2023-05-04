@@ -20,11 +20,8 @@ pub const Player = struct {
     foundNet: bool = false,
 
     pub fn tryMove(self: *Self, xy: Point) bool {
-        if (!xy.isValid()) return false;
-        // Get thing/ entity walkable and interact with it
-        // ..
-        // Check if we can walk on the tile and simply walk onto it
-        // ..
+        const map = @import("main.zig").game.map;
+        if (!map.isWalkable(&xy)) return false;
         self.xy = xy;
         return true;
     }
@@ -51,14 +48,14 @@ pub const Thing = union(enum) {
 
     pub fn isNone(self: *Self) bool {
         return switch (self.*) {
-            Self.none => true,
+            .none => true,
             else => false,
         };
     }
 
     pub fn isDead(self: *Self) bool {
         return switch (self.*) {
-            Self.butter => |*s| s.*.dead,
+            .butter => |*s| s.*.dead,
             else => false,
         };
     }
@@ -67,15 +64,15 @@ pub const Thing = union(enum) {
         // When interact returns True, the other creature can move over
         // if False, the entity is like a block that cannot be steped over
         return switch (self.*) {
-            Self.chest => |*s| s.*.interact(player),
-            Self.butter => |*s| s.*.interact(player),
+            .chest => |*s| s.*.interact(player),
+            .butter => |*s| s.*.interact(player),
             else => true, // always move
         };
     }
 
     pub fn behave(self: *Self) void {
         switch (self.*) {
-            Self.butter => |*s| s.*.behave(),
+            .butter => |*s| s.*.behave(),
             else => {},
         }
     }
@@ -153,7 +150,10 @@ pub const Butterfly = struct {
         if (rand().int(u4) < self.moveSpeed) {
             return;
         }
+
+        const map = @import("main.zig").game.map;
         var tries: u4 = 3;
+
         while (tries > 0) : (tries -= 1) {
             // Flip coin to determine if moving in N,S,E,W direction
             const moveDir = @intToEnum(Direction, rand().int(u2));
@@ -163,7 +163,11 @@ pub const Butterfly = struct {
                 self.xy.plus(&offsetP)
             else
                 self.xy.minus(&offsetP);
-            if (!newPos.isValid()) continue;
+
+            // validate new position
+            if (!map.isWalkable(&newPos)) continue;
+            if (map.hasEntity(&newPos)) continue;
+
             self.xy = newPos;
             break;
         }

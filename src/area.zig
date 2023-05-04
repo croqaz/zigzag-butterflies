@@ -5,6 +5,7 @@ const util = @import("util.zig");
 // const log = @import("log.zig");
 //
 const Thing = things.Thing;
+const Player = things.Player;
 const Point = @import("p2d.zig").Point;
 const rand = @import("random.zig").random;
 //
@@ -12,8 +13,12 @@ const rand = @import("random.zig").random;
 //
 pub const Area = struct {
     const Self = @This();
-    // TODO :: this can be improved!
+
+    // TODO :: maybe this can be improved?
     const allocator: std.mem.Allocator = std.heap.page_allocator;
+
+    // player instance
+    player: Player = Player{},
 
     // 2D background tiles, flat array
     // used for rendering on position
@@ -39,8 +44,6 @@ pub const Area = struct {
     pub fn generateMapLvl1(self: *Self) void {
         @setCold(true);
 
-        // more map gen is done in JS
-
         // draw grass
         var i: u8 = 0;
         while (i < 250) : (i += 1) {
@@ -48,6 +51,8 @@ pub const Area = struct {
             const y = randY();
             self.tiles[util.idxArea(u16, x, y)] = 39; // char '
         }
+
+        // more map gen is done in JS
 
         const chestWithNet = rand().int(u3);
         var j: u8 = 0;
@@ -74,28 +79,49 @@ pub const Area = struct {
         }
     }
 
+    /// Check if Point is valid & walkable (not a wall)
+    pub fn isWalkable(self: *const Self, xy: *const Point) bool {
+        if (!xy.isValid()) return false;
+        const idx = util.idxAreaXY(u16, xy);
+        const cell = self.getTileAt(idx);
+        if (cell == '#') return false;
+        return true;
+    }
+
+    /// Get the tile at Point coord
+    /// If coord is not inside the map, return a wall tile
     pub fn getTileAt(self: *const Self, idx: u16) u16 {
-        // If coord is not inside the map, return a wall tile
         if (idx < 0 or idx > cfg.mapSize) {
-            return 35; // char #
+            return '#';
         } else {
             return self.tiles[idx];
         }
     }
 
-    pub fn interactAt(self: *Self, xy: *const Point, player: *things.Player) bool {
-        const k = util.idxArea(u16, xy.x, xy.y);
+    /// Check if there are entities (or Player) at Point
+    pub fn hasEntity(self: *const Self, xy: *const Point) bool {
+        if (self.player.xy.eq(xy)) return true;
+        const k = util.idxAreaXY(u16, xy);
+        if (self.coords.contains(k)) return true;
+        return false;
+    }
+
+    /// Player interact at Point
+    pub fn interactAt(self: *Self, xy: *const Point) bool {
+        const k = util.idxAreaXY(u16, xy);
         const idx = self.coords.get(k);
         if (idx) |i| {
-            const ok: bool = self.ents[i].interact(player);
+            // potentially in the future
+            // entities could interact with each other
+            const ok: bool = self.ents[i].interact(&self.player);
             return ok;
         }
         return true;
     }
 
+    /// All entities on the map, act/ behave/ run their turn
     pub fn entitiesBehave(self: *Self) void {
         self.coords.clearAndFree(allocator);
-        // All entities on the map, act/ behave/ run their turn
         for (&self.ents, 0..) |*e, i| {
             if (e.isDead()) {
                 self.ents[i] = Thing{ .none = things.None{} };
@@ -104,9 +130,10 @@ pub const Area = struct {
             // TODO: if response is True, check entity
             // some entities may be destroyed after their turn
             _ = e.*.behave();
+
             // update position on the map
             const xy = e.xy();
-            const k = util.idxArea(u16, xy.x, xy.y);
+            const k = util.idxAreaXY(u16, &xy);
             self.coords.put(allocator, k, i) catch continue;
         }
         // TODO: if entities have behaved, return True, to force re-render

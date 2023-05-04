@@ -27,13 +27,6 @@ pub const Point = struct {
     x: i16 = 0,
     y: i16 = 0,
 
-    pub fn init(x: i16, y: i16) @This() {
-        return @This(){
-            .x = x,
-            .y = y,
-        };
-    }
-
     pub inline fn isValid(self: *const Point) bool {
         return (self.x >= 0 and
             self.x < cfg.mapWidth and
@@ -41,7 +34,7 @@ pub const Point = struct {
             self.y < cfg.mapHeight);
     }
 
-    pub fn isWithin(self: *const Point, topLeft: *const Point, botRight: *const Point) bool {
+    pub inline fn isWithin(self: *const Point, topLeft: *const Point, botRight: *const Point) bool {
         return (self.x >= topLeft.x and
             self.x <= botRight.x and
             self.y >= topLeft.y and

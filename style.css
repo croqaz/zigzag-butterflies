@@ -14,7 +14,7 @@ html, body, div, table {
 }
 
 body {
-	min-height: 99.9vh;
+	max-height: 99.9vh;
 	display: grid;
 	background-color: #f0f0f0;
 	grid-template-columns: repeat(2, 1fr);

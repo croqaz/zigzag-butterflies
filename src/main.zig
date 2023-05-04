@@ -10,16 +10,13 @@ const Area = @import("area.zig").Area;
 const ViewPort = @import("view.zig").ViewPort;
 //
 const Direction = p2d.Direction;
-const Player = things.Player;
 const Point = p2d.Point;
-
+//
 pub const Game = struct {
     // game map/ area
     map: Area = Area{},
     // viewPort logic
     vw: ViewPort = ViewPort{},
-    // player instance
-    player: Player = Player{},
     // exported rendered grid
     grid: [cfg.viewSize]u16 = [_]u16{32} ** cfg.viewSize,
 
@@ -42,13 +39,13 @@ pub const Game = struct {
             const xy = e.xy();
             if (xy.isWithin(&self.vw.topLeft, &self.vw.botRight)) {
                 const tXY = xy.minus(&self.vw.topLeft);
-                self.grid[util.idxView(u16, tXY.x, tXY.y)] = e.ch();
+                self.grid[util.idxViewXY(u16, &tXY)] = e.ch();
             }
         }
 
         // Render Player @ ViewPort center
-        const pXY = self.player.xy.minus(&self.vw.topLeft);
-        self.grid[util.idxView(u16, pXY.x, pXY.y)] = self.player.ch;
+        const pXY = self.map.player.xy.minus(&self.vw.topLeft);
+        self.grid[util.idxViewXY(u16, &pXY)] = self.map.player.ch;
     }
 
     // Player moves to a direction (or waits)
@@ -56,15 +53,15 @@ pub const Game = struct {
     // all entities take their turn to behave;
     pub fn turn(self: *Game, dir: Direction) bool {
         const offsetP = dir.toOffset();
-        const newCenter = self.player.xy.plus(&offsetP);
+        const newCenter = self.map.player.xy.plus(&offsetP);
         var viewMoved: bool = true;
 
         // If there are entities on map at the new point,
         // interact with the entity!! and if OK, player & view can move
         // Null entities always return OK on interact
-        const ok = self.map.interactAt(&newCenter, &self.player);
+        const ok = self.map.interactAt(&newCenter);
         if (ok) {
-            viewMoved = self.player.tryMove(newCenter) and
+            viewMoved = self.map.player.tryMove(newCenter) and
                 game.vw.slideView(offsetP);
         }
 
@@ -74,7 +71,7 @@ pub const Game = struct {
     }
 };
 
-var game: Game = Game{};
+pub var game: Game = Game{};
 
 // Zig app entry
 pub fn main() void {
