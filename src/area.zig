@@ -26,7 +26,7 @@ pub const Area = struct {
 
     // all things on the map: actors & decor
     // used for turns & listing creatures
-    ents: [16]Thing = undefined,
+    ents: [24]Thing = undefined,
 
     // map coordinates -> ents array index
     coords: std.AutoHashMapUnmanaged(usize, usize) = std.AutoHashMapUnmanaged(usize, usize){},
@@ -70,11 +70,33 @@ pub const Area = struct {
         }
 
         i = 0;
-        while (i < std.math.maxInt(u3)) : (i += 1) {
+        while (i < 6) : (i += 1) {
             // TODO: random map position
             const x = randX();
             const y = randY();
-            self.ents[j] = Thing{ .butter = things.Butterfly{ .xy = Point{ .x = x, .y = y } } };
+            self.ents[j] = Thing{ .butter = things.Butterfly.newGrayButterfly(x, y) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 6) : (i += 1) {
+            // TODO: random map position
+            const x = randX();
+            const y = randY();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newBlueButterfly(x, y) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 5) : (i += 1) {
+            const x = randX();
+            const y = randY();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newGreenButterfly(x, y) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 5) : (i += 1) {
+            const x = randX();
+            const y = randY();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newRedButterfly(x, y) };
             j += 1;
         }
     }
@@ -121,6 +143,7 @@ pub const Area = struct {
 
     /// All entities on the map, act/ behave/ run their turn
     pub fn entitiesBehave(self: *Self) void {
+        // TODO: check old map pos, before entity has moved!
         self.coords.clearAndFree(allocator);
         for (&self.ents, 0..) |*e, i| {
             if (e.isDead()) {

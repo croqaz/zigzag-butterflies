@@ -70,3 +70,48 @@ body {
 	position: absolute;
 	bottom: 5px;
 }
+
+#game td.wall,
+#game td.stone,
+#game td.chest,
+#game td.player,
+#game td.butterfly {
+	text-shadow: 1px 2px 5px rgba(90, 160, 90, 0.5);
+}
+#game td.grass {
+	color: #77d051;
+}
+#game td.flower {
+	font-size: 20px;
+}
+#game td.red.flower {
+	color: #ffa6c9;
+}
+#game td.blue.flower {
+	color: #64b5f6;
+}
+#game td.yellow.flower {
+	color: #ffd300;
+}
+#game td.wall {
+	color: #545453;
+	font-size: 20px;
+}
+#game td.chest {
+	color: #401801;
+}
+#game td.silver.butterfly {
+	color: #88898a;
+}
+#game td.blue.butterfly {
+	color: #0066ff;
+}
+#game td.green.butterfly {
+	color: #228b22;
+}
+#game td.red.butterfly {
+	color: #a91101;
+}
+#game td.elusive.butterfly {
+	color: #fff1f9;
+}

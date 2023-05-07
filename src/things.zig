@@ -9,14 +9,8 @@ const rand = @import("random.zig").random;
 //
 pub const Player = struct {
     const Self = @This();
-    // visual char
     ch: u8 = '@',
-    // short unique name
-    name: String = "You",
-    // some description
-    // descrip: string,
     xy: Point = Point{ .x = 0, .y = 0 },
-
     foundNet: bool = false,
 
     pub fn tryMove(self: *Self, xy: Point) bool {
@@ -82,7 +76,6 @@ pub const Thing = union(enum) {
 // When an entity dies, it becomes Null
 pub const None = struct {
     ch: u8 = 0,
-    name: String = "",
     xy: Point = Point{ .x = -1, .y = -1 }, // invalid point
 };
 
@@ -90,10 +83,7 @@ pub const Chest = struct {
     const Self = @This();
     // visual char
     ch: u8 = 'X', // 88, 120
-    // short unique name
-    name: String = "Chest",
-    // some description
-    // descrip: string,
+    // position on the map
     xy: Point = Point{ .x = 0, .y = 0 },
 
     open: bool = false,
@@ -118,22 +108,40 @@ pub const Chest = struct {
 pub const Butterfly = struct {
     const Self = @This();
     // visual char
-    ch: u8 = 'B', // 66, 98
-    // short unique name
-    name: String = "Butterfly",
-    // some description
-    // descrip: string,
+    ch: u8,
+    // position on the map
     xy: Point = Point{ .x = 0, .y = 0 },
 
     dead: bool = false,
     // how fast it can move every turn
-    moveSpeed: u4 = 8,
+    lazyness: u4 = 8,
     // how likely you can catch it
-    agility: f32 = 6,
+    agility: f32 = 8,
 
+    pub fn newGrayButterfly(x: u8, y: u8) Butterfly {
+        return Butterfly{ .ch = 'A', .lazyness = 8, .agility = 7, .xy = Point{ .x = x, .y = y } };
+    }
+
+    pub fn newBlueButterfly(x: u8, y: u8) Butterfly {
+        return Butterfly{ .ch = 'B', .lazyness = 10, .xy = Point{ .x = x, .y = y } };
+    }
+
+    pub fn newGreenButterfly(x: u8, y: u8) Butterfly {
+        return Butterfly{ .ch = 'C', .lazyness = 6, .agility = 8, .xy = Point{ .x = x, .y = y } };
+    }
+
+    pub fn newRedButterfly(x: u8, y: u8) Butterfly {
+        return Butterfly{ .ch = 'D', .lazyness = 3, .agility = 10, .xy = Point{ .x = x, .y = y } };
+    }
+
+    pub fn newElusiveButterfly(x: u8, y: u8) Butterfly {
+        return Butterfly{ .ch = 'E', .lazyness = 1, .agility = 14, .xy = Point{ .x = x, .y = y } };
+    }
+
+    /// The player tries to catch this butterfly
     fn interact(self: *Self, player: *Player) bool {
-        // The player tries to catch this butterfly
         const rnd = @intToFloat(f32, rand().int(u4));
+        // max value = 16
         const chance = if (player.foundNet == true) rnd else rnd / 2;
         if (chance < self.agility) {
             log.gameLog("You fail to catch a butterfly!");
@@ -147,7 +155,7 @@ pub const Butterfly = struct {
 
     fn behave(self: *Self) void {
         // The butterfly doesn't move all the time
-        if (rand().int(u4) < self.moveSpeed) {
+        if (rand().int(u4) < self.lazyness) {
             return;
         }
 

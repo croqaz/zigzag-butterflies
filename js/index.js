@@ -5,25 +5,86 @@ import { throttle } from 'throttle-debounce';
 const FG_COLOR = '#111';
 const COLORS = {
   '#': '#575a3f',
+  '.': '#535155',
   "'": '#77d051',
   '"': '#239725',
-  '.': '#535155',
   ':': '#2d9f62',
   'o': '#ed6294',
   'O': '#90c1f9',
   '0': '#f3e744',
 };
 
-function nrToChar(nr) {
+function nrToCell(nr) {
+  let ch = String.fromCharCode(nr);
   // all numbers should be ASCII,
   // if they're not, it's an error and I want to see it
-  let ch = String.fromCharCode(nr);
-  if (nr > 250 || nr < 10) console.error(`Received invalid CH: ${nr} = ${ch}!`)
-  if (!ch.trim()) ch = "'";
-  else if (ch === 'B') ch = '🦋';
-  else if (ch === 'X') ch = '▣';
-  else if (ch === 'x') ch = '▨';
-  return ch;
+  if (nr > 250 || nr < 10) {
+    console.error(`Received invalid CH: ${nr} = ${ch}!`);
+  }
+  let cls = '';
+  switch (ch) {
+    case '@':
+      cls = 'player';
+      break;
+    case "'":
+    case '"':
+    case ':':
+      cls = 'grass';
+      if (ch === ':') ch = '⋎';
+      cls = 'grass';
+      break;
+    case '0':
+      ch = '✲';
+      cls = 'blue flower';
+      break;
+    case 'o':
+      ch = '✲';
+      cls = 'red flower';
+      break;
+    case 'O':
+      ch = '✲';
+      cls = 'yellow flower';
+      break;
+    case '.':
+      ch = '‥';
+      cls = 'stone';
+      break;
+    case '#':
+      cls = 'wall';
+      break;
+    case 'A':
+      ch = '❵❴';
+      cls = 'silver butterfly';
+      break;
+    case 'B':
+      ch = '❵❴';
+      cls = 'blue butterfly';
+      break;
+    case 'C':
+      ch = '❵❴';
+      cls = 'green butterfly';
+      break;
+    case 'D':
+      ch = '❵❴';
+      cls = 'red butterfly';
+      break;
+    case 'E':
+      ch = '❵❴';
+      cls = 'elusive butterfly';
+      break;
+    case 'X':
+      ch = '▣';
+      cls = 'chest';
+      break;
+    case 'x':
+      ch = '▨';
+      cls = 'chest';
+      break;
+    default:
+      ch = "'";
+      cls = 'grass';
+  }
+  return { ch, cls };
 }
 
 let memory = null;
@@ -64,7 +125,7 @@ const importObject = {
   let bufferOffset = exports.getMapPointer();
   const areaTiles = new Uint16Array(memory.buffer, bufferOffset, mapWidth * mapHeight);
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 100; i++) {
     const x = Math.random() * mapWidth - 1;
     const y = Math.random() * mapHeight - 1;
     const z = Math.round(x + y * mapWidth);
@@ -195,17 +256,16 @@ const importObject = {
       }
 
       const gridCol = (nr, c, r) => {
-        const ch = nrToChar(nr);
-        const color = COLORS[ch] ? COLORS[ch] : FG_COLOR;
+        const cell = nrToCell(nr);
         return h(
           'td',
           {
             key: `x-${r + 1}-${c + 1}`,
             onMouseOver: this.onMouseOver,
             onMouseLeave: this.onMouseLeave,
-            style: { color },
+            classList: cell.cls,
           },
-          ch,
+          cell.ch,
         );
       };
       const gridRow = (row, r) =>
