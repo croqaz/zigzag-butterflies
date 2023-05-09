@@ -22,7 +22,7 @@ pub const Area = struct {
 
     // 2D background tiles, flat array
     // used for rendering on position
-    tiles: [cfg.mapSize]u16 = [_]u16{32} ** cfg.mapSize,
+    tiles: [cfg.mapSize]u16 = [_]u16{'\''} ** cfg.mapSize,
 
     // all things on the map: actors & decor
     // used for turns & listing creatures
@@ -30,6 +30,61 @@ pub const Area = struct {
 
     // map coordinates -> ents array index
     coords: std.AutoHashMapUnmanaged(usize, usize) = std.AutoHashMapUnmanaged(usize, usize){},
+
+    pub fn generateMapLvl1(self: *Self) void {
+        @setCold(true);
+
+        // draw grass
+        var i: u8 = 0;
+        while (i < 250) : (i += 1) {
+            const x = randX();
+            const y = randY();
+            self.tiles[util.idxArea(u16, x, y)] = '"';
+        }
+
+        // more map gen is done in JS
+
+        var j: u8 = 0;
+        i = 0;
+        while (i < 10) : (i += 1) {
+            var chest = Thing{ .chest = things.Chest{ .xy = self.getRandomCoord() } };
+            if (i == 7) { // lucky!
+                chest.chest.hasNet = true;
+            }
+            self.ents[j] = chest;
+            j += 1;
+        }
+        i = 0;
+        while (i < 12) : (i += 1) {
+            const xy = self.getRandomCoord();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newGrayButterfly(xy) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 10) : (i += 1) {
+            const xy = self.getRandomCoord();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newBlueButterfly(xy) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 8) : (i += 1) {
+            const xy = self.getRandomCoord();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newGreenButterfly(xy) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 4) : (i += 1) {
+            const xy = self.getRandomCoord();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newRedButterfly(xy) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 2) : (i += 1) {
+            const xy = self.getRandomCoord();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newElusiveButterfly(xy) };
+            j += 1;
+        }
+    }
 
     fn randX() u8 {
         const x = rand().int(u7);
@@ -41,70 +96,13 @@ pub const Area = struct {
         return if (y > cfg.mapHeight) y / 2 else @min(y, cfg.mapHeight - 1);
     }
 
-    pub fn generateMapLvl1(self: *Self) void {
-        @setCold(true);
-
-        // draw grass
-        var i: u8 = 0;
-        while (i < 250) : (i += 1) {
-            const x = randX();
-            const y = randY();
-            self.tiles[util.idxArea(u16, x, y)] = 39; // char '
+    fn getRandomCoord(self: *const Self) Point {
+        var tries: u4 = 3;
+        while (tries > 0) : (tries -= 1) {
+            const p = Point{ .x = randX(), .y = randY() };
+            if (self.isWalkable(&p)) return p;
         }
-
-        // more map gen is done in JS
-
-        const chestWithNet = rand().int(u3);
-        var j: u8 = 0;
-        i = 0;
-        while (i < 10) : (i += 1) {
-            // TODO: random map position
-            const x = randX();
-            const y = randY();
-            var chest = Thing{ .chest = things.Chest{ .xy = Point{ .x = x, .y = y } } };
-            if (i == chestWithNet) {
-                chest.chest.hasNet = true;
-            }
-            self.ents[j] = chest;
-            j += 1;
-        }
-        i = 0;
-        while (i < 12) : (i += 1) {
-            // TODO: random map position
-            const x = randX();
-            const y = randY();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newGrayButterfly(x, y) };
-            j += 1;
-        }
-        i = 0;
-        while (i < 10) : (i += 1) {
-            // TODO: random map position
-            const x = randX();
-            const y = randY();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newBlueButterfly(x, y) };
-            j += 1;
-        }
-        i = 0;
-        while (i < 8) : (i += 1) {
-            const x = randX();
-            const y = randY();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newGreenButterfly(x, y) };
-            j += 1;
-        }
-        i = 0;
-        while (i < 4) : (i += 1) {
-            const x = randX();
-            const y = randY();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newRedButterfly(x, y) };
-            j += 1;
-        }
-        i = 0;
-        while (i < 2) : (i += 1) {
-            const x = randX();
-            const y = randY();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newElusiveButterfly(x, y) };
-            j += 1;
-        }
+        return undefined;
     }
 
     /// Check if Point is valid & walkable (not a wall)
@@ -149,6 +147,7 @@ pub const Area = struct {
 
     /// All entities on the map, act/ behave/ run their turn
     pub fn entitiesBehave(self: *Self) void {
+        // ??
         // TODO: check old map pos, before entity has moved!
         self.coords.clearAndFree(allocator);
         for (&self.ents, 0..) |*e, i| {
@@ -158,13 +157,12 @@ pub const Area = struct {
             }
             // TODO: if response is True, check entity
             // some entities may be destroyed after their turn
-            _ = e.*.behave();
+            e.*.behave();
 
             // update position on the map
             const xy = e.xy();
             const k = util.idxAreaXY(u16, &xy);
             self.coords.put(allocator, k, i) catch continue;
         }
-        // TODO: if entities have behaved, return True, to force re-render
     }
 };

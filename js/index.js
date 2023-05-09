@@ -64,12 +64,6 @@ const importObject = {
     const z = Math.round(x + y * mapWidth);
     areaTiles[z] = '.'.charCodeAt(0);
   }
-  for (let i = 0; i < 200; i++) {
-    const x = Math.random() * mapWidth - 1;
-    const y = Math.random() * mapHeight - 1;
-    const z = Math.round(x + y * mapWidth);
-    areaTiles[z] = '"'.charCodeAt(0);
-  }
   for (let i = 0; i < 100; i++) {
     const x = Math.random() * mapWidth - 1;
     const y = Math.random() * mapHeight - 1;
@@ -94,7 +88,7 @@ const importObject = {
     const z = Math.round(x + y * mapWidth);
     areaTiles[z] = '0'.charCodeAt(0);
   }
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 75; i++) {
     const x = 10 + Math.random() * mapWidth - 20;
     const y = 20 + Math.random() * mapHeight - 20;
     const z = Math.round(x + y * mapWidth);
@@ -146,7 +140,8 @@ const importObject = {
         if (this.state[k]) {
           butterflies.push(h('p', {}, `${k}: ${this.state[k]}`));
         }
-      } if (butterflies.length === 1) {
+      }
+      if (butterflies.length === 1) {
         butterflies.push(h('p', {}, 'None'));
       }
       score.push(butterflies);

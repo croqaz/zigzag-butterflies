@@ -112,10 +112,11 @@ pub const Chest = struct {
             if (self.hasNet) {
                 gameEvent(1);
                 player.foundNet = true;
+                self.hasNet = false;
             } else {
                 gameEvent(2);
             }
-            self.open = false;
+            self.open = true;
             self.ch = 'x';
         }
         return true;
@@ -136,39 +137,38 @@ pub const Butterfly = struct {
     // how likely you can catch it
     agility: f32 = 8,
 
-    pub fn newGrayButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .type = 0, .lazyness = 8, .agility = 7, .xy = Point{ .x = x, .y = y } };
+    pub fn newGrayButterfly(xy: Point) Butterfly {
+        return Butterfly{ .type = 0, .lazyness = 10, .agility = 7, .xy = xy };
     }
 
-    pub fn newBlueButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .type = 1, .lazyness = 10, .xy = Point{ .x = x, .y = y } };
+    pub fn newBlueButterfly(xy: Point) Butterfly {
+        return Butterfly{ .type = 1, .lazyness = 10, .xy = xy };
     }
 
-    pub fn newGreenButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .type = 2, .lazyness = 6, .agility = 8, .xy = Point{ .x = x, .y = y } };
+    pub fn newGreenButterfly(xy: Point) Butterfly {
+        return Butterfly{ .type = 2, .lazyness = 8, .xy = xy };
     }
 
-    pub fn newRedButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .type = 3, .lazyness = 3, .agility = 10, .xy = Point{ .x = x, .y = y } };
+    pub fn newRedButterfly(xy: Point) Butterfly {
+        return Butterfly{ .type = 3, .lazyness = 3, .agility = 10, .xy = xy };
     }
 
-    pub fn newElusiveButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .type = 4, .lazyness = 1, .agility = 14, .xy = Point{ .x = x, .y = y } };
+    pub fn newElusiveButterfly(xy: Point) Butterfly {
+        return Butterfly{ .type = 4, .lazyness = 1, .agility = 14, .xy = xy };
     }
 
     /// The player tries to catch this butterfly
     fn interact(self: *Self, player: *Player) bool {
-        const rnd = @intToFloat(f32, rand().int(u4));
         // max value = 16
-        const chance = if (player.foundNet == true) rnd else rnd / 2;
+        var chance = @intToFloat(f32, rand().int(u4));
+        if (!player.foundNet) chance /= 2;
         if (chance < self.agility) {
             gameEvent(10 + self.type);
-            return false;
         } else {
             gameEvent(20 + self.type);
             self.dead = true;
         }
-        return true;
+        return self.dead;
     }
 
     fn behave(self: *Self) void {
