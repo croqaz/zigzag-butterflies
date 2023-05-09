@@ -73,10 +73,14 @@ body {
 
 #game td.wall,
 #game td.stone,
-#game td.chest,
-#game td.player,
+#game td.chest {
+	text-shadow: 1px 2px 5px rgba(120, 200, 120, 0.75);
+}
+#game td.player {
+	text-shadow: 1px 2px 7px rgba(120, 120, 200, 0.75);
+}
 #game td.butterfly {
-	text-shadow: 1px 2px 5px rgba(90, 160, 90, 0.5);
+	text-shadow: 1px 2px 7px rgba(120, 200, 120, 0.5);
 }
 #game td.grass {
 	color: #77d051;
@@ -113,5 +117,6 @@ body {
 	color: #a91101;
 }
 #game td.elusive.butterfly {
-	color: #fff1f9;
+	color: #ffc901;
+	text-shadow: 1px 2px 7px rgba(200, 200, 120, 0.4);
 }

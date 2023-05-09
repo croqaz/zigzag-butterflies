@@ -26,7 +26,7 @@ pub const Area = struct {
 
     // all things on the map: actors & decor
     // used for turns & listing creatures
-    ents: [24]Thing = undefined,
+    ents: [46]Thing = undefined, // 10 + 12 + 10 + 8 + 4 + 2
 
     // map coordinates -> ents array index
     coords: std.AutoHashMapUnmanaged(usize, usize) = std.AutoHashMapUnmanaged(usize, usize){},
@@ -57,7 +57,7 @@ pub const Area = struct {
         const chestWithNet = rand().int(u3);
         var j: u8 = 0;
         i = 0;
-        while (i < std.math.maxInt(u3)) : (i += 1) {
+        while (i < 10) : (i += 1) {
             // TODO: random map position
             const x = randX();
             const y = randY();
@@ -68,9 +68,8 @@ pub const Area = struct {
             self.ents[j] = chest;
             j += 1;
         }
-
         i = 0;
-        while (i < 6) : (i += 1) {
+        while (i < 12) : (i += 1) {
             // TODO: random map position
             const x = randX();
             const y = randY();
@@ -78,7 +77,7 @@ pub const Area = struct {
             j += 1;
         }
         i = 0;
-        while (i < 6) : (i += 1) {
+        while (i < 10) : (i += 1) {
             // TODO: random map position
             const x = randX();
             const y = randY();
@@ -86,17 +85,24 @@ pub const Area = struct {
             j += 1;
         }
         i = 0;
-        while (i < 5) : (i += 1) {
+        while (i < 8) : (i += 1) {
             const x = randX();
             const y = randY();
             self.ents[j] = Thing{ .butter = things.Butterfly.newGreenButterfly(x, y) };
             j += 1;
         }
         i = 0;
-        while (i < 5) : (i += 1) {
+        while (i < 4) : (i += 1) {
             const x = randX();
             const y = randY();
             self.ents[j] = Thing{ .butter = things.Butterfly.newRedButterfly(x, y) };
+            j += 1;
+        }
+        i = 0;
+        while (i < 2) : (i += 1) {
+            const x = randX();
+            const y = randY();
+            self.ents[j] = Thing{ .butter = things.Butterfly.newElusiveButterfly(x, y) };
             j += 1;
         }
     }

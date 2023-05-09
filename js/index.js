@@ -1,6 +1,9 @@
 import '../style.css';
+import { nrToCell, nrToLog } from './convert';
 import { render, h, Component } from 'preact';
 import { throttle } from 'throttle-debounce';
+import Nanobus from 'nanobus';
+const bus = Nanobus();
 
 const FG_COLOR = '#111';
 const COLORS = {
@@ -14,87 +17,14 @@ const COLORS = {
   '0': '#f3e744',
 };
 
-function nrToCell(nr) {
-  let ch = String.fromCharCode(nr);
-  // all numbers should be ASCII,
-  // if they're not, it's an error and I want to see it
-  if (nr > 250 || nr < 10) {
-    console.error(`Received invalid CH: ${nr} = ${ch}!`);
-  }
-  let cls = '';
-  switch (ch) {
-    case '@':
-      cls = 'player';
-      break;
-    case "'":
-    case '"':
-    case ':':
-      cls = 'grass';
-      if (ch === ':') ch = '⋎';
-      cls = 'grass';
-      break;
-    case '0':
-      ch = '✲';
-      cls = 'blue flower';
-      break;
-    case 'o':
-      ch = '✲';
-      cls = 'red flower';
-      break;
-    case 'O':
-      ch = '✲';
-      cls = 'yellow flower';
-      break;
-    case '.':
-      ch = '‥';
-      cls = 'stone';
-      break;
-    case '#':
-      cls = 'wall';
-      break;
-    case 'A':
-      ch = '❵❴';
-      cls = 'silver butterfly';
-      break;
-    case 'B':
-      ch = '❵❴';
-      cls = 'blue butterfly';
-      break;
-    case 'C':
-      ch = '❵❴';
-      cls = 'green butterfly';
-      break;
-    case 'D':
-      ch = '❵❴';
-      cls = 'red butterfly';
-      break;
-    case 'E':
-      ch = '❵❴';
-      cls = 'elusive butterfly';
-      break;
-    case 'X':
-      ch = '▣';
-      cls = 'chest';
-      break;
-    case 'x':
-      ch = '▨';
-      cls = 'chest';
-      break;
-    default:
-      ch = "'";
-      cls = 'grass';
-  }
-  return { ch, cls };
-}
-
 let memory = null;
 let consoleLogBuffer = '';
 const txtDecoder = new TextDecoder();
 
 const importObject = {
   env: {
-    gameLog: function (ptr, len) {
-      console.log(txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len)));
+    gameEvent: function (ev) {
+      bus.emit('log:event', nrToLog(ev));
     },
     consoleLog: function (ptr, len) {
       consoleLogBuffer += txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len));
@@ -183,6 +113,36 @@ const importObject = {
   let wasmMemorySz = memory.buffer.byteLength / (1024 * 1024);
   console.log('WASM memory MB:', wasmMemorySz);
 
+  class GameLogs extends Component {
+    state = { logs: ['Catch all the butterflies!'] };
+
+    onLogMsg = (msg) => {
+      const logs = this.state.logs.concat(msg);
+      // trim old log messages
+      while (logs.length > 99) logs.shift();
+      this.setState({ logs });
+    };
+
+    componentDidMount() {
+      bus.on('log:event', this.onLogMsg);
+    }
+
+    componentWillUnmount() {
+      bus.off('log:event', this.onLogMsg);
+    }
+
+    componentDidUpdate() {
+      // Jump scroll
+      const container = document.getElementById('logs');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    render() {
+      const logMsg = (msg) => h('p', {}, msg);
+      return h('div', { id: 'logs' }, [h('span', {}, this.state.logs.map(logMsg))]);
+    }
+  }
+
   class GameGrid extends Component {
     state = { turns: 0, auto: false };
 
@@ -240,7 +200,7 @@ const importObject = {
     }
 
     componentWillUnmount() {
-      this.removeEventListener('keydown', this.onKeyPressed);
+      document.removeEventListener('keydown', this.onKeyPressed);
     }
 
     render() {
@@ -280,11 +240,7 @@ const importObject = {
 
   class App extends Component {
     render() {
-      return [
-        h(GameGrid, { props: this.state }),
-        h('div', { id: 'score' }, [h('h3', {}, 'Butterflies'), h('p', {}, 'None')]),
-        h('div', { id: 'logs' }, [h('span', {}, 'Catch all the butterflies!')]),
-      ];
+      return [h(GameGrid), h('div', { id: 'score' }, [h('h3', {}, 'Butterflies'), h('p', {}, 'None')]), h(GameLogs)];
     }
   }
 

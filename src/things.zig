@@ -1,11 +1,27 @@
 const std = @import("std");
 const p2d = @import("p2d.zig");
-const log = @import("log.zig");
+// const log = @import("log.zig");
 //
 const String = []const u8;
 const Point = p2d.Point;
 const Direction = p2d.Direction;
 const rand = @import("random.zig").random;
+const gameEvent = @import("js.zig").Imports.gameEvent;
+//
+const GameEvent = enum(c_int) {
+    // chestHasNet = 1,
+    // chestEmpty = 2,
+    // missGrayButterfly = 10,
+    // missBlueButterfly,
+    // missGreenButterfly,
+    // missRedButterfly,
+    // missElusiveButterfly,
+    // catchGrayButterfly = 20,
+    // catchBlueButterfly,
+    // catchGreenButterfly,
+    // catchRedButterfly,
+    // catchElusiveButterfly,
+};
 //
 pub const Player = struct {
     const Self = @This();
@@ -93,10 +109,10 @@ pub const Chest = struct {
         // open/ close chest
         if (!self.open) {
             if (self.hasNet) {
-                log.gameLog("You find a butterfly net!");
+                gameEvent(1);
                 player.foundNet = true;
             } else {
-                log.gameLog("The chest is empty.");
+                gameEvent(2);
             }
             self.open = false;
             self.ch = 'x';
@@ -112,30 +128,32 @@ pub const Butterfly = struct {
     // position on the map
     xy: Point = Point{ .x = 0, .y = 0 },
 
+    type: u8 = 0,
     dead: bool = false,
+
     // how fast it can move every turn
     lazyness: u4 = 8,
     // how likely you can catch it
     agility: f32 = 8,
 
     pub fn newGrayButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .ch = 'A', .lazyness = 8, .agility = 7, .xy = Point{ .x = x, .y = y } };
+        return Butterfly{ .type = 0, .ch = 'A', .lazyness = 8, .agility = 7, .xy = Point{ .x = x, .y = y } };
     }
 
     pub fn newBlueButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .ch = 'B', .lazyness = 10, .xy = Point{ .x = x, .y = y } };
+        return Butterfly{ .type = 1, .ch = 'B', .lazyness = 10, .xy = Point{ .x = x, .y = y } };
     }
 
     pub fn newGreenButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .ch = 'C', .lazyness = 6, .agility = 8, .xy = Point{ .x = x, .y = y } };
+        return Butterfly{ .type = 2, .ch = 'C', .lazyness = 6, .agility = 8, .xy = Point{ .x = x, .y = y } };
     }
 
     pub fn newRedButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .ch = 'D', .lazyness = 3, .agility = 10, .xy = Point{ .x = x, .y = y } };
+        return Butterfly{ .type = 3, .ch = 'D', .lazyness = 3, .agility = 10, .xy = Point{ .x = x, .y = y } };
     }
 
     pub fn newElusiveButterfly(x: u8, y: u8) Butterfly {
-        return Butterfly{ .ch = 'E', .lazyness = 1, .agility = 14, .xy = Point{ .x = x, .y = y } };
+        return Butterfly{ .type = 4, .ch = 'E', .lazyness = 1, .agility = 14, .xy = Point{ .x = x, .y = y } };
     }
 
     /// The player tries to catch this butterfly
@@ -144,10 +162,10 @@ pub const Butterfly = struct {
         // max value = 16
         const chance = if (player.foundNet == true) rnd else rnd / 2;
         if (chance < self.agility) {
-            log.gameLog("You fail to catch a butterfly!");
+            gameEvent(10 + self.type);
             return false;
         } else {
-            log.gameLog("You catch a butterfly!");
+            gameEvent(20 + self.type);
             self.dead = true;
         }
         return true;

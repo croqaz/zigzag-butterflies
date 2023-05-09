@@ -1,6 +1,6 @@
 // Generate map based on this size
-pub export const mapWidth: u8 = 100;
-pub export const mapHeight: u8 = 60;
+pub export const mapWidth: u8 = 120;
+pub export const mapHeight: u8 = 100;
 pub const mapSize: u16 = @as(u16, mapHeight) * @as(u16, mapWidth);
 
 // ViewPort sizes
