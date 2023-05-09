@@ -1,5 +1,5 @@
 import '../style.css';
-import { nrToCell, nrToLog } from './convert';
+import { nrToCell, nrToStat, nrToLog } from './convert';
 import { render, h, Component } from 'preact';
 import { throttle } from 'throttle-debounce';
 import Nanobus from 'nanobus';
@@ -24,7 +24,10 @@ const txtDecoder = new TextDecoder();
 const importObject = {
   env: {
     gameEvent: function (ev) {
-      bus.emit('log:event', nrToLog(ev));
+      let x = nrToLog(ev);
+      if (x) bus.emit('log:event', x);
+      x = nrToStat(ev);
+      if (x) bus.emit('stat:event', x);
     },
     consoleLog: function (ptr, len) {
       consoleLogBuffer += txtDecoder.decode(new Uint8Array(memory.buffer, ptr, len));
@@ -112,6 +115,44 @@ const importObject = {
 
   let wasmMemorySz = memory.buffer.byteLength / (1024 * 1024);
   console.log('WASM memory MB:', wasmMemorySz);
+
+  class GameScore extends Component {
+    state = { foundNet: 0, gray: 0, blue: 0, green: 0, red: 0, elusive: 0 };
+
+    onUpdate = (k) => {
+      console.log('State:', k);
+      const s = this.state;
+      s[k]++;
+      this.setState(s);
+    };
+
+    componentDidMount() {
+      bus.on('stat:event', this.onUpdate);
+    }
+
+    componentWillUnmount() {
+      bus.off('stat:event', this.onUpdate);
+    }
+
+    render() {
+      const score = [];
+      if (this.state.foundNet) {
+        score.push(h('h3', {}, 'You are holding'));
+        score.push(h('p', {}, 'a butterfly net'));
+      }
+      const butterflies = [h('h3', {}, 'Butterflies')];
+      for (const k of Object.keys(this.state)) {
+        if (k === 'foundNet') continue;
+        if (this.state[k]) {
+          butterflies.push(h('p', {}, `${k}: ${this.state[k]}`));
+        }
+      } if (butterflies.length === 1) {
+        butterflies.push(h('p', {}, 'None'));
+      }
+      score.push(butterflies);
+      return h('div', { id: 'score' }, score);
+    }
+  }
 
   class GameLogs extends Component {
     state = { logs: ['Catch all the butterflies!'] };
@@ -240,7 +281,7 @@ const importObject = {
 
   class App extends Component {
     render() {
-      return [h(GameGrid), h('div', { id: 'score' }, [h('h3', {}, 'Butterflies'), h('p', {}, 'None')]), h(GameLogs)];
+      return [h(GameGrid), h(GameScore), h(GameLogs)];
     }
   }
 
