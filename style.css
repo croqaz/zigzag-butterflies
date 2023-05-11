@@ -118,5 +118,11 @@ body {
 }
 #game td.elusive.butterfly {
 	color: #ffc901;
-	text-shadow: 1px 2px 7px rgba(200, 200, 120, 0.4);
+	text-shadow: 1px 2px 7px rgba(200, 200, 120, 0.44);
+	animation: change 1s infinite alternate linear;
+}
+@keyframes change {
+  to {
+    color: #ff6c2f;
+  }
 }

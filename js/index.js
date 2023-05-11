@@ -1,9 +1,9 @@
 import '../style.css';
+import { bus } from './event';
+import { render, h, Component } from '../node_modules/preact/src/index.js';
+import { GameScore, GameLogs, GameHelp } from './components';
 import { nrToCell, nrToStat, nrToLog } from './convert';
-import { render, h, Component } from 'preact';
 import { throttle } from 'throttle-debounce';
-import Nanobus from 'nanobus';
-const bus = Nanobus();
 
 const FG_COLOR = '#111';
 const COLORS = {
@@ -20,6 +20,10 @@ const COLORS = {
 let memory = null;
 let consoleLogBuffer = '';
 const txtDecoder = new TextDecoder();
+
+function titleCase(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 const importObject = {
   env: {
@@ -110,76 +114,51 @@ const importObject = {
   let wasmMemorySz = memory.buffer.byteLength / (1024 * 1024);
   console.log('WASM memory MB:', wasmMemorySz);
 
-  class GameScore extends Component {
-    state = { foundNet: 0, gray: 0, blue: 0, green: 0, red: 0, elusive: 0 };
-
-    onUpdate = (k) => {
-      console.log('State:', k);
-      const s = this.state;
-      s[k]++;
-      this.setState(s);
-    };
-
-    componentDidMount() {
-      bus.on('stat:event', this.onUpdate);
-    }
-
-    componentWillUnmount() {
-      bus.off('stat:event', this.onUpdate);
-    }
-
-    render() {
-      const score = [];
-      if (this.state.foundNet) {
-        score.push(h('h3', {}, 'You are holding'));
-        score.push(h('p', {}, 'a butterfly net'));
-      }
-      const butterflies = [h('h3', {}, 'Butterflies')];
-      for (const k of Object.keys(this.state)) {
-        if (k === 'foundNet') continue;
-        if (this.state[k]) {
-          butterflies.push(h('p', {}, `${k}: ${this.state[k]}`));
-        }
-      }
-      if (butterflies.length === 1) {
-        butterflies.push(h('p', {}, 'None'));
-      }
-      score.push(butterflies);
-      return h('div', { id: 'score' }, score);
-    }
-  }
-
-  class GameLogs extends Component {
-    state = { logs: ['Catch all the butterflies!'] };
-
-    onLogMsg = (msg) => {
-      const logs = this.state.logs.concat(msg);
-      // trim old log messages
-      while (logs.length > 99) logs.shift();
-      this.setState({ logs });
-    };
-
-    componentDidMount() {
-      bus.on('log:event', this.onLogMsg);
-    }
-
-    componentWillUnmount() {
-      bus.off('log:event', this.onLogMsg);
-    }
-
-    componentDidUpdate() {
-      // Jump scroll
-      const container = document.getElementById('logs');
-      container.scrollTop = container.scrollHeight;
-    }
-
-    render() {
-      const logMsg = (msg) => h('p', {}, msg);
-      return h('div', { id: 'logs' }, [h('span', {}, this.state.logs.map(logMsg))]);
-    }
-  }
-
   class GameGrid extends Component {
+    onMouseOver(ev) {
+      ev.target.classList.add('selected');
+    }
+
+    onMouseLeave(ev) {
+      ev.target.classList.remove('selected');
+    }
+
+    render() {
+      const grid = [];
+      // convert the flat grid to a 2D array
+      for (let r = 0; r < viewHeight; r++) {
+        const row = [];
+        for (let c = 0; c < viewWidth; c++) {
+          const i = c + r * viewWidth;
+          row.push(flatTiles[i]);
+        }
+        grid.push(row);
+      }
+      const gridCol = (nr, c, r) => {
+        const cell = nrToCell(nr);
+        return h(
+          'td',
+          {
+            key: `x-${r + 1}-${c + 1}`,
+            title: titleCase(cell.cls),
+            onmouseover: this.onMouseOver,
+            onmouseleave: this.onMouseLeave,
+            classList: cell.cls,
+          },
+          cell.ch,
+        );
+      };
+      const gridRow = (row, r) =>
+        h(
+          'tr',
+          { key: `"y-${r + 1}` },
+          row.map((cell, c) => gridCol(cell, c, r)),
+        );
+      return h('table', { id: 'game', tabIndex: 0 }, grid.map(gridRow));
+    }
+  }
+
+  class App extends Component {
     state = { turns: 0, auto: false };
 
     onKeyPressed = throttle(
@@ -223,14 +202,6 @@ const importObject = {
       { noTrailing: true },
     );
 
-    onMouseOver = (ev) => {
-      ev.target.classList.add('selected');
-    };
-
-    onMouseLeave = (ev) => {
-      ev.target.classList.remove('selected');
-    };
-
     componentDidMount() {
       document.addEventListener('keydown', this.onKeyPressed);
     }
@@ -240,45 +211,9 @@ const importObject = {
     }
 
     render() {
-      const grid = [];
-      // convert the flat grid to a 2D array
-      for (let r = 0; r < viewHeight; r++) {
-        const row = [];
-        for (let c = 0; c < viewWidth; c++) {
-          const i = c + r * viewWidth;
-          row.push(flatTiles[i]);
-        }
-        grid.push(row);
-      }
-
-      const gridCol = (nr, c, r) => {
-        const cell = nrToCell(nr);
-        return h(
-          'td',
-          {
-            key: `x-${r + 1}-${c + 1}`,
-            onMouseOver: this.onMouseOver,
-            onMouseLeave: this.onMouseLeave,
-            classList: cell.cls,
-          },
-          cell.ch,
-        );
-      };
-      const gridRow = (row, r) =>
-        h(
-          'tr',
-          { key: `"y-${r + 1}` },
-          row.map((cell, c) => gridCol(cell, c, r)),
-        );
-      return h('table', { id: 'game', tabIndex: 0 }, grid.map(gridRow));
+      return [h(GameGrid), h(GameScore), h(GameLogs), h(GameHelp)];
     }
   }
 
-  class App extends Component {
-    render() {
-      return [h(GameGrid), h(GameScore), h(GameLogs)];
-    }
-  }
-
-  render(h(App, null), document.body);
+  render(h(App), document.body);
 })();
