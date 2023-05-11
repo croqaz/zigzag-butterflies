@@ -12,10 +12,11 @@ export function nrToCell(nr) {
       break;
     case "'":
     case '"':
+      cls = 'grass';
+      break;
     case ':':
-      cls = 'grass';
-      if (ch === ':') ch = '⋎';
-      cls = 'grass';
+      ch = '⋎';
+      cls = 'tall grass';
       break;
     case '0':
       ch = '✲';
@@ -31,7 +32,7 @@ export function nrToCell(nr) {
       break;
     case '.':
       ch = '‥';
-      cls = 'stone';
+      cls = 'stones';
       break;
     case '#':
       cls = 'wall';
@@ -58,11 +59,11 @@ export function nrToCell(nr) {
       break;
     case 'X':
       ch = '▣';
-      cls = 'chest';
+      cls = 'closed chest';
       break;
     case 'x':
       ch = '▨';
-      cls = 'chest';
+      cls = 'open chest';
       break;
     default:
       ch = "'";
