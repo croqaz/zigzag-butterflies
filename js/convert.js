@@ -1,4 +1,5 @@
 export function nrToCell(nr) {
+  if (nr === 0) nr = 39;
   let ch = String.fromCharCode(nr);
   // all numbers should be ASCII,
   // if they're not, it's an error and I want to see it

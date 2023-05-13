@@ -10,13 +10,13 @@ pub const Direction = enum(c_int) {
     pub fn toOffset(self: Direction) Point {
         return switch (self) {
             // try to move Nord, up
-            Direction.n => Point{ .x = 0, .y = -1 },
+            Direction.n => Point{ .y = -1 },
             // try to move South, down
-            Direction.s => Point{ .x = 0, .y = 1 },
+            Direction.s => Point{ .y = 1 },
             // try to move E, right
-            Direction.e => Point{ .x = 1, .y = 0 },
+            Direction.e => Point{ .x = 1 },
             // try to move W, left
-            Direction.w => Point{ .x = -1, .y = 0 },
+            Direction.w => Point{ .x = -1 },
             // no movement
             else => Point{},
         };

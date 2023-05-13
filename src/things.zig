@@ -4,24 +4,8 @@ const p2d = @import("p2d.zig");
 //
 const String = []const u8;
 const Point = p2d.Point;
-const Direction = p2d.Direction;
 const rand = @import("random.zig").random;
 const gameEvent = @import("js.zig").Imports.gameEvent;
-//
-const GameEvent = enum(c_int) {
-    // chestHasNet = 1,
-    // chestEmpty = 2,
-    // missGrayButterfly = 10,
-    // missBlueButterfly,
-    // missGreenButterfly,
-    // missRedButterfly,
-    // missElusiveButterfly,
-    // catchGrayButterfly = 20,
-    // catchBlueButterfly,
-    // catchGreenButterfly,
-    // catchRedButterfly,
-    // catchElusiveButterfly,
-};
 //
 pub const Player = struct {
     const Self = @This();
@@ -49,6 +33,14 @@ pub const Thing = union(enum) {
             .none => 0,
             .chest => |s| s.ch,
             .butter => |s| 'A' + s.type,
+        };
+    }
+
+    pub fn id(self: Self) u8 {
+        return switch (self) {
+            .none => 0,
+            .chest => |s| s.id,
+            .butter => |s| s.id,
         };
     }
 
@@ -91,9 +83,10 @@ pub const Thing = union(enum) {
 };
 
 // Null entity hack; This is the "undefined" Thing;
-// When an entity dies, it becomes Null
+// When an entity dies, it becomes this None thing
 pub const None = struct {
-    xy: Point = Point{ .x = -1, .y = -1 }, // invalid point
+    // init with an invalid point
+    xy: Point = Point{ .x = -1, .y = -1 },
 };
 
 pub const Chest = struct {
@@ -102,6 +95,8 @@ pub const Chest = struct {
     ch: u8 = 'X', // 88, 120
     // position on the map
     xy: Point = Point{ .x = 0, .y = 0 },
+    // inspect id
+    id: u8,
 
     open: bool = false,
     hasNet: bool = false,
@@ -131,37 +126,39 @@ pub const Butterfly = struct {
     // the visual char is calculated from Type
     type: u8 = 0,
     dead: bool = false,
+    // inspect id
+    id: u8,
 
     // how fast it can move every turn
     lazyness: u4 = 8,
     // how likely you can catch it
     agility: f32 = 8,
 
-    pub fn newGrayButterfly(xy: Point) Butterfly {
-        return Butterfly{ .type = 0, .lazyness = 10, .agility = 7, .xy = xy };
+    pub fn newGrayButterfly(id: u8, xy: Point) Butterfly {
+        return Butterfly{ .id = id, .type = 0, .xy = xy };
     }
 
-    pub fn newBlueButterfly(xy: Point) Butterfly {
-        return Butterfly{ .type = 1, .lazyness = 10, .xy = xy };
+    pub fn newBlueButterfly(id: u8, xy: Point) Butterfly {
+        return Butterfly{ .id = id, .type = 1, .lazyness = 9, .xy = xy };
     }
 
-    pub fn newGreenButterfly(xy: Point) Butterfly {
-        return Butterfly{ .type = 2, .lazyness = 8, .xy = xy };
+    pub fn newGreenButterfly(id: u8, xy: Point) Butterfly {
+        return Butterfly{ .id = id, .type = 2, .agility = 13, .xy = xy };
     }
 
-    pub fn newRedButterfly(xy: Point) Butterfly {
-        return Butterfly{ .type = 3, .lazyness = 3, .agility = 10, .xy = xy };
+    pub fn newRedButterfly(id: u8, xy: Point) Butterfly {
+        return Butterfly{ .id = id, .type = 3, .lazyness = 3, .agility = 14, .xy = xy };
     }
 
-    pub fn newElusiveButterfly(xy: Point) Butterfly {
-        return Butterfly{ .type = 4, .lazyness = 1, .agility = 14, .xy = xy };
+    pub fn newElusiveButterfly(id: u8, xy: Point) Butterfly {
+        return Butterfly{ .id = id, .type = 4, .lazyness = 1, .agility = 15, .xy = xy };
     }
 
     /// The player tries to catch this butterfly
     fn interact(self: *Self, player: *Player) bool {
         // max value = 16
         var chance = @intToFloat(f32, rand().int(u4));
-        if (!player.foundNet) chance /= 2;
+        if (player.foundNet) chance *= 1.2 else chance /= 1.5;
         if (chance < self.agility) {
             gameEvent(10 + self.type);
         } else {
@@ -182,7 +179,7 @@ pub const Butterfly = struct {
 
         while (tries > 0) : (tries -= 1) {
             // Flip coin to determine if moving in N,S,E,W direction
-            const moveDir = @intToEnum(Direction, rand().int(u2));
+            const moveDir = @intToEnum(p2d.Direction, rand().int(u2));
             const offsetP = moveDir.toOffset();
             // Flip coin to determine if moving in ++ or -- direction
             const newPos = if (rand().boolean())

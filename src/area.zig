@@ -22,7 +22,7 @@ pub const Area = struct {
 
     // 2D background tiles, flat array
     // used for rendering on position
-    tiles: [cfg.mapSize]u16 = [_]u16{'\''} ** cfg.mapSize,
+    tiles: [cfg.mapSize]u16 = undefined,
 
     // all things on the map: actors & decor
     // used for turns & listing creatures
@@ -47,7 +47,7 @@ pub const Area = struct {
         var j: u8 = 0;
         i = 0;
         while (i < 10) : (i += 1) {
-            var chest = Thing{ .chest = things.Chest{ .xy = self.getRandomCoord() } };
+            var chest = Thing{ .chest = things.Chest{ .id = j, .xy = self.getRandomCoord() } };
             if (i == 7) { // lucky!
                 chest.chest.hasNet = true;
             }
@@ -57,31 +57,31 @@ pub const Area = struct {
         i = 0;
         while (i < 12) : (i += 1) {
             const xy = self.getRandomCoord();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newGrayButterfly(xy) };
+            self.ents[j] = Thing{ .butter = things.Butterfly.newGrayButterfly(j, xy) };
             j += 1;
         }
         i = 0;
         while (i < 10) : (i += 1) {
             const xy = self.getRandomCoord();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newBlueButterfly(xy) };
+            self.ents[j] = Thing{ .butter = things.Butterfly.newBlueButterfly(j, xy) };
             j += 1;
         }
         i = 0;
         while (i < 8) : (i += 1) {
             const xy = self.getRandomCoord();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newGreenButterfly(xy) };
+            self.ents[j] = Thing{ .butter = things.Butterfly.newGreenButterfly(j, xy) };
             j += 1;
         }
         i = 0;
         while (i < 4) : (i += 1) {
             const xy = self.getRandomCoord();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newRedButterfly(xy) };
+            self.ents[j] = Thing{ .butter = things.Butterfly.newRedButterfly(j, xy) };
             j += 1;
         }
         i = 0;
         while (i < 2) : (i += 1) {
             const xy = self.getRandomCoord();
-            self.ents[j] = Thing{ .butter = things.Butterfly.newElusiveButterfly(xy) };
+            self.ents[j] = Thing{ .butter = things.Butterfly.newElusiveButterfly(j, xy) };
             j += 1;
         }
     }
@@ -97,7 +97,7 @@ pub const Area = struct {
     }
 
     fn getRandomCoord(self: *const Self) Point {
-        var tries: u4 = 3;
+        var tries: u8 = 250;
         while (tries > 0) : (tries -= 1) {
             const p = Point{ .x = randX(), .y = randY() };
             if (self.isWalkable(&p)) return p;

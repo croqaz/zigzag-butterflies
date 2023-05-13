@@ -17,8 +17,10 @@ pub const Game = struct {
     map: Area = Area{},
     // viewPort logic
     vw: ViewPort = ViewPort{},
-    // exported rendered grid
+    // rendered grid
     grid: [cfg.viewSize]u16 = [_]u16{32} ** cfg.viewSize,
+    // inspect at coord
+    inspect: [2]u16 = undefined,
 
     // Update rendered grid
     pub fn render(self: *Game) void {
@@ -43,7 +45,7 @@ pub const Game = struct {
             }
         }
 
-        // Render Player @ ViewPort center
+        // Render Player
         const pXY = self.map.player.xy.minus(&self.vw.topLeft);
         self.grid[util.idxViewXY(u16, &pXY)] = self.map.player.ch;
     }
@@ -98,4 +100,19 @@ export fn getViewPointer() [*]u16 {
 
 export fn getMapPointer() [*]u16 {
     return @ptrCast([*]u16, &game.map.tiles);
+}
+
+export fn getViewOffset() [*]i16 {
+    return @ptrCast([*]i16, &game.vw.topLeft);
+}
+
+export fn inspectAt(idx: u16) [*]u16 {
+    if (game.map.coords.get(idx)) |i| {
+        game.inspect[0] = game.map.ents[i].id();
+        game.inspect[1] = game.map.ents[i].ch();
+    } else {
+        game.inspect[0] = 0;
+        game.inspect[1] = game.map.getTileAt(idx);
+    }
+    return @ptrCast([*]u16, &game.inspect);
 }

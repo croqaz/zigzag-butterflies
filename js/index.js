@@ -111,12 +111,23 @@ const importObject = {
   const flatTiles = new Uint16Array(memory.buffer, bufferOffset, viewWidth * viewHeight);
   bufferOffset = null;
 
+  // X,Y offset of the view, relative to the map
+  const viewOffset = new Int16Array(memory.buffer, exports.getViewOffset(), 2);
+  const inspectArr = new Uint16Array(memory.buffer, exports.inspectAt(0), 2);
+
   let wasmMemorySz = memory.buffer.byteLength / (1024 * 1024);
   console.log('WASM memory MB:', wasmMemorySz);
 
   class GameGrid extends Component {
     onMouseOver(ev) {
-      ev.target.classList.add('selected');
+      const tgt = ev.target;
+      tgt.classList.add('selected');
+      const x = viewOffset[0] + parseInt(tgt.dataset.x);
+      const y = viewOffset[1] + parseInt(tgt.dataset.y);
+      const p = exports.inspectAt(x + y * mapWidth);
+      const { cls } = nrToCell(inspectArr[1]);
+      if (inspectArr[0]) tgt.title = `${cls} #${inspectArr[0]} @ ${x}x${y}`;
+      else tgt.title = `${cls} @ ${x}x${y}`;
     }
 
     onMouseLeave(ev) {
@@ -143,6 +154,8 @@ const importObject = {
             title: titleCase(cell.cls),
             onmouseover: this.onMouseOver,
             onmouseleave: this.onMouseLeave,
+            'data-x': c,
+            'data-y': r,
             classList: cell.cls,
           },
           cell.ch,

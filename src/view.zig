@@ -12,7 +12,7 @@ pub const ViewPort = struct {
     // view rect, top & bottom
     // must be in sync with center
     topLeft: Point = Point{},
-    botRight: Point = Point{ .x = cfg.viewWidth, .y = cfg.viewHeight },
+    botRight: Point = Point{},
 
     pub fn slideView(self: *Self, offset: Point) bool {
         // x & y are between -32..32
