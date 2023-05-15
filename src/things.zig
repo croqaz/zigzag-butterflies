@@ -39,8 +39,7 @@ pub const Thing = union(enum) {
     pub fn id(self: Self) u8 {
         return switch (self) {
             .none => 0,
-            .chest => |s| s.id,
-            .butter => |s| s.id,
+            inline else => |s| s.id + 1,
         };
     }
 
@@ -50,16 +49,16 @@ pub const Thing = union(enum) {
         };
     }
 
-    pub fn isNone(self: *const Self) bool {
-        return switch (self.*) {
+    pub fn isNone(self: Self) bool {
+        return switch (self) {
             .none => true,
             else => false,
         };
     }
 
-    pub fn isDead(self: *const Self) bool {
-        return switch (self.*) {
-            .butter => |*s| s.*.dead,
+    pub fn isDead(self: Self) bool {
+        return switch (self) {
+            .butter => |s| s.dead,
             else => false,
         };
     }
@@ -70,7 +69,7 @@ pub const Thing = union(enum) {
         return switch (self.*) {
             .chest => |*s| s.*.interact(player),
             .butter => |*s| s.*.interact(player),
-            else => true, // always move
+            else => true, // always move on "dead" entities
         };
     }
 

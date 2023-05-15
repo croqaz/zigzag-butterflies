@@ -8,6 +8,7 @@ const util = @import("util.zig");
 //
 const Area = @import("area.zig").Area;
 const ViewPort = @import("view.zig").ViewPort;
+const gameEvent = @import("js.zig").Imports.gameEvent;
 //
 const Direction = p2d.Direction;
 const Point = p2d.Point;
@@ -61,15 +62,30 @@ pub const Game = struct {
         // If there are entities on map at the new point,
         // interact with the entity!! and if OK, player & view can move
         // Null entities always return OK on interact
-        const ok = self.map.interactAt(&newCenter);
-        if (ok) {
+        const success = self.map.interactAt(&newCenter);
+        if (success) {
             viewMoved = self.map.player.tryMove(newCenter) and
                 game.vw.slideView(offsetP);
         }
 
         self.map.entitiesBehave();
         self.render();
+        self.won();
+
         return viewMoved;
+    }
+
+    /// Check if there are no more butterflies
+    fn won(self: *Game) void {
+        for (&self.map.ents) |*e| {
+            switch (e.*) {
+                things.Thing.butter => {
+                    if (!e.butter.dead) return;
+                },
+                else => {},
+            }
+        }
+        gameEvent(777);
     }
 };
 
@@ -82,6 +98,8 @@ pub fn main() void {
 }
 
 // WASM lib entry
+// the "init" function is kind of optional, but I want to have a seed,
+// to restore the state of the map in case of bugs
 export fn init(seed: u32) void {
     random.initRandom(seed);
     game.map.generateMapLvl1();

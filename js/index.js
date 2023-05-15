@@ -113,6 +113,7 @@ const importObject = {
 
   // X,Y offset of the view, relative to the map
   const viewOffset = new Int16Array(memory.buffer, exports.getViewOffset(), 2);
+  // The result of the inspect function [id,nr]
   const inspectArr = new Uint16Array(memory.buffer, exports.inspectAt(0), 2);
 
   let wasmMemorySz = memory.buffer.byteLength / (1024 * 1024);
@@ -124,9 +125,15 @@ const importObject = {
       tgt.classList.add('selected');
       const x = viewOffset[0] + parseInt(tgt.dataset.x);
       const y = viewOffset[1] + parseInt(tgt.dataset.y);
-      const p = exports.inspectAt(x + y * mapWidth);
-      const { cls } = nrToCell(inspectArr[1]);
-      if (inspectArr[0]) tgt.title = `${cls} #${inspectArr[0]} @ ${x}x${y}`;
+      if (tgt.innerText === '@') {
+        tgt.title = `Player @ ${x}x${y}`;
+        return;
+      }
+      exports.inspectAt(x + y * mapWidth);
+      const [id, nr] = inspectArr;
+      let { cls } = nrToCell(nr);
+      cls = titleCase(cls);
+      if (id) tgt.title = `${cls} #${id} @ ${x}x${y}`;
       else tgt.title = `${cls} @ ${x}x${y}`;
     }
 
@@ -172,7 +179,7 @@ const importObject = {
   }
 
   class App extends Component {
-    state = { turns: 0, auto: false };
+    state = { turns: 0, foundNet: null, auto: false };
 
     onKeyPressed = throttle(
       50,
@@ -215,12 +222,23 @@ const importObject = {
       { noTrailing: true },
     );
 
+    checkStatus = (k) => {
+      if (k === 'foundNet') {
+        this.state.foundNet = new Date();
+      } else if (k === 'gameWon') {
+        console.log('You won!!!');
+        console.log('Found net:', this.state.foundNet);
+        console.log('Total turns:', this.state.turns);
+      }
+    };
+
     componentDidMount() {
       document.addEventListener('keydown', this.onKeyPressed);
+      bus.on('stat:event', this.checkStatus);
     }
-
     componentWillUnmount() {
       document.removeEventListener('keydown', this.onKeyPressed);
+      bus.off('stat:event', this.checkStatus);
     }
 
     render() {

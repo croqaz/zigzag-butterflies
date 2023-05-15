@@ -4,16 +4,13 @@ import { h, Component } from '../node_modules/preact/src/index.js';
 export class GameScore extends Component {
   state = {
     foundNet: false,
-    foundTime: null,
     butterflies: { gray: 0, blue: 0, green: 0, red: 0, elusive: 0 },
   };
 
   onUpdate = (k) => {
     const s = this.state;
-    if (k === 'foundNet') {
-      s.foundNet = true;
-      s.foundTime = new Date();
-    } else s.butterflies[k] += 1;
+    if (k === 'foundNet') s.foundNet = true;
+    else s.butterflies[k] += 1;
     this.setState(s);
   };
 

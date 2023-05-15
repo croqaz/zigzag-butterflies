@@ -105,6 +105,9 @@ export function nrToStat(nr) {
   if (nr >= 20 && nr <= 24) {
     return _nrToButterfly(nr);
   }
+  if (nr === 777) {
+    return 'gameWon';
+  }
 }
 
 export function nrToLog(nr) {

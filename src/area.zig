@@ -115,7 +115,7 @@ pub const Area = struct {
     }
 
     /// Get the tile at Point coord
-    /// If coord is not inside the map, return a wall tile
+    /// If coord is outside the map, return a wall tile
     pub fn getTileAt(self: *const Self, idx: u16) u16 {
         if (idx < 0 or idx > cfg.mapSize) {
             return '#';
@@ -128,40 +128,39 @@ pub const Area = struct {
     pub fn hasEntity(self: *const Self, xy: *const Point) bool {
         if (self.player.xy.eq(xy)) return true;
         const k = util.idxAreaXY(u16, xy);
-        if (self.coords.contains(k)) return true;
-        return false;
+        return self.coords.contains(k);
     }
 
-    /// Player interact at Point
+    /// Player interacts with entity at Point
     pub fn interactAt(self: *Self, xy: *const Point) bool {
         const k = util.idxAreaXY(u16, xy);
         const idx = self.coords.get(k);
         if (idx) |i| {
-            // potentially in the future
-            // entities could interact with each other
-            const ok: bool = self.ents[i].interact(&self.player);
-            return ok;
+            // Future IDEA: entities could interact with each other
+            return self.ents[i].interact(&self.player);
         }
         return true;
     }
 
     /// All entities on the map, act/ behave/ run their turn
     pub fn entitiesBehave(self: *Self) void {
-        // ??
-        // TODO: check old map pos, before entity has moved!
-        self.coords.clearAndFree(allocator);
+        // self.coords.clearAndFree(allocator);
         for (&self.ents, 0..) |*e, i| {
             if (e.isDead()) {
                 self.ents[i] = Thing{ .none = things.None{} };
                 continue;
             }
-            // TODO: if response is True, check entity
+            // remove old map position from coords
+            var k = util.idxAreaXY(u16, &e.xy());
+            _ = self.coords.remove(k);
+
+            // Future IDEA: check entity after behaving;
             // some entities may be destroyed after their turn
+            // (but not in this game)
             e.*.behave();
 
-            // update position on the map
-            const xy = e.xy();
-            const k = util.idxAreaXY(u16, &xy);
+            // put new map position in coords
+            k = util.idxAreaXY(u16, &e.xy());
             self.coords.put(allocator, k, i) catch continue;
         }
     }
