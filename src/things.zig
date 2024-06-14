@@ -156,7 +156,7 @@ pub const Butterfly = struct {
     /// The player tries to catch this butterfly
     fn interact(self: *Self, player: *Player) bool {
         // max value = 16
-        var chance = @intToFloat(f32, rand().int(u4));
+        var chance: f32 = @floatFromInt(rand().int(u4));
         if (player.foundNet) chance *= 1.2 else chance /= 1.5;
         if (chance < self.agility) {
             gameEvent(10 + self.type);
@@ -178,8 +178,8 @@ pub const Butterfly = struct {
 
         while (tries > 0) : (tries -= 1) {
             // Flip coin to determine if moving in N,S,E,W direction
-            const moveDir = @intToEnum(p2d.Direction, rand().int(u2));
-            const offsetP = moveDir.toOffset();
+            const moveDir: p2d.Direction = @enumFromInt(rand().int(u2));
+            const offsetP: Point = moveDir.toOffset();
             // Flip coin to determine if moving in ++ or -- direction
             const newPos = if (rand().boolean())
                 self.xy.plus(&offsetP)

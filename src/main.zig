@@ -27,10 +27,10 @@ pub const Game = struct {
     pub fn render(self: *Game) void {
         // Iterate through all visible map cells
         var gridIndex: usize = 0;
-        for (@intCast(u16, self.vw.topLeft.y)..@intCast(u16, self.vw.botRight.y)) |y| {
-            for (@intCast(u16, self.vw.topLeft.x)..@intCast(u16, self.vw.botRight.x)) |x| {
+        for (@intCast(self.vw.topLeft.y)..@intCast(self.vw.botRight.y)) |y| {
+            for (@intCast(self.vw.topLeft.x)..@intCast(self.vw.botRight.x)) |x| {
                 // TODO: map render @ x,y, would return Entity or Background!
-                const i = util.idxArea(u16, @intCast(i16, x), @intCast(i16, y));
+                const i = util.idxArea(@intCast(x), @intCast(y));
                 self.grid[gridIndex] = self.map.getTileAt(i);
                 gridIndex += 1;
             }
@@ -42,13 +42,13 @@ pub const Game = struct {
             const xy = e.xy();
             if (xy.isWithin(&self.vw.topLeft, &self.vw.botRight)) {
                 const tXY = xy.minus(&self.vw.topLeft);
-                self.grid[util.idxViewXY(u16, &tXY)] = e.ch();
+                self.grid[util.idxViewXY(&tXY)] = e.ch();
             }
         }
 
         // Render Player
         const pXY = self.map.player.xy.minus(&self.vw.topLeft);
-        self.grid[util.idxViewXY(u16, &pXY)] = self.map.player.ch;
+        self.grid[util.idxViewXY(&pXY)] = self.map.player.ch;
     }
 
     // Player moves to a direction (or waits)
@@ -113,15 +113,15 @@ export fn turn(dir: Direction) bool {
 
 // The returned pointer will be used as an offset integer to the WASM memory
 export fn getViewPointer() [*]u16 {
-    return @ptrCast([*]u16, &game.grid);
+    return @ptrCast(&game.grid);
 }
 
 export fn getMapPointer() [*]u16 {
-    return @ptrCast([*]u16, &game.map.tiles);
+    return @ptrCast(&game.map.tiles);
 }
 
 export fn getViewOffset() [*]i16 {
-    return @ptrCast([*]i16, &game.vw.topLeft);
+    return @ptrCast(&game.vw.topLeft);
 }
 
 export fn inspectAt(idx: u16) [*]u16 {
@@ -132,5 +132,5 @@ export fn inspectAt(idx: u16) [*]u16 {
         game.inspect[0] = 0;
         game.inspect[1] = game.map.getTileAt(idx);
     }
-    return @ptrCast([*]u16, &game.inspect);
+    return @ptrCast(&game.inspect);
 }

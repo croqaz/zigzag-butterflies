@@ -2,16 +2,16 @@ const cfg = @import("config.zig");
 const p2d = @import("p2d.zig");
 const Point = p2d.Point;
 
-pub inline fn idxArea(comptime T: type, x: i16, y: i16) T {
-    const z = @intCast(T, x) + @intCast(T, y) * @intCast(T, cfg.mapWidth);
+pub inline fn idxArea(x: i16, y: i16) u16 {
+    const z: u16 = @intCast(x + y * cfg.mapWidth);
     return @min(z, cfg.mapSize);
 }
 
-pub inline fn idxAreaXY(comptime T: type, xy: *const Point) T {
-    return idxArea(T, xy.x, xy.y);
+pub inline fn idxAreaXY(xy: *const Point) u16 {
+    return idxArea(xy.x, xy.y);
 }
 
-pub inline fn idxViewXY(comptime T: type, xy: *const Point) T {
-    const z = @intCast(T, xy.x) + @intCast(T, xy.y) * @intCast(T, cfg.viewWidth);
+pub inline fn idxViewXY(xy: *const Point) u16 {
+    const z: u16 = @intCast(xy.x + xy.y * cfg.viewWidth);
     return @min(z, cfg.viewSize);
 }

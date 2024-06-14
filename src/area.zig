@@ -39,7 +39,7 @@ pub const Area = struct {
         while (i < 250) : (i += 1) {
             const x = randX();
             const y = randY();
-            self.tiles[util.idxArea(u16, x, y)] = '"';
+            self.tiles[util.idxArea(x, y)] = '"';
         }
 
         // more map gen is done in JS
@@ -108,7 +108,7 @@ pub const Area = struct {
     /// Check if Point is valid & walkable (not a wall)
     pub fn isWalkable(self: *const Self, xy: *const Point) bool {
         if (!xy.isValid()) return false;
-        const idx = util.idxAreaXY(u16, xy);
+        const idx = util.idxAreaXY(xy);
         const cell = self.getTileAt(idx);
         if (cell == '#') return false;
         return true;
@@ -127,13 +127,13 @@ pub const Area = struct {
     /// Check if there are entities (or Player) at Point
     pub fn hasEntity(self: *const Self, xy: *const Point) bool {
         if (self.player.xy.eq(xy)) return true;
-        const k = util.idxAreaXY(u16, xy);
+        const k = util.idxAreaXY(xy);
         return self.coords.contains(k);
     }
 
     /// Player interacts with entity at Point
     pub fn interactAt(self: *Self, xy: *const Point) bool {
-        const k = util.idxAreaXY(u16, xy);
+        const k = util.idxAreaXY(xy);
         const idx = self.coords.get(k);
         if (idx) |i| {
             // Future IDEA: entities could interact with each other
@@ -151,7 +151,7 @@ pub const Area = struct {
                 continue;
             }
             // remove old map position from coords
-            var k = util.idxAreaXY(u16, &e.xy());
+            var k = util.idxAreaXY(&e.xy());
             _ = self.coords.remove(k);
 
             // Future IDEA: check entity after behaving;
@@ -160,7 +160,7 @@ pub const Area = struct {
             e.*.behave();
 
             // put new map position in coords
-            k = util.idxAreaXY(u16, &e.xy());
+            k = util.idxAreaXY(&e.xy());
             self.coords.put(allocator, k, i) catch continue;
         }
     }
