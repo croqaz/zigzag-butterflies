@@ -7,18 +7,18 @@
   "source": "game.html",
   "scripts": {
     "build:wasm": "zig build-exe src/main.zig -target wasm32-freestanding -O ReleaseSmall -flto -fno-entry --export=init --export=turn --export=getViewPointer --export=getMapPointer --export=inspectAt --export=getViewOffset --export=viewWidth --export=viewHeight --export=mapWidth --export=mapHeight",
-    "build:js": "esbuild ./js --bundle --outfile=dist/game.js",
+    "build:js": "esbuild ./js --bundle --target=chrome120 --outfile=dist/game.js",
     "build": "npm run build:wasm && npm run build:js",
     "wasm:opt": "wasm-opt -O3 --gufa -Oz --converge -o butter.wasm main.wasm && mv butter.wasm main.wasm",
     "start": "npx serve ."
   },
   "dependencies": {
-    "nanobus": "4.5.0",
-    "preact": "10.13.2",
-    "throttle-debounce": "5.0.0"
+    "nanobus": "4.5.x",
+    "preact": "10.22.x",
+    "throttle-debounce": "5.0.x"
   },
   "devDependencies": {
-    "esbuild": "0.17.17",
+    "esbuild": "0.21.x",
     "prettier": "3.3.x",
     "wasm-opt": "1.4.x"
   },
