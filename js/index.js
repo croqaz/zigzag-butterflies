@@ -49,6 +49,11 @@ const importObject = {
   const { turn } = exports;
   memory = exports.memory;
 
+  //-// DEBUG
+  // window.wasmMemory = exports.memory;
+  // window.wasmGetViewOffset = exports.getViewOffset;
+  // window.wasmInspectAt = exports.inspectAt;
+
   const mapWidth = new Uint8Array(memory.buffer, exports.mapWidth.value, 1)[0];
   const mapHeight = new Uint8Array(memory.buffer, exports.mapHeight.value, 1)[0];
   console.log(`Map size: ${mapWidth}x${mapHeight}`);
@@ -119,6 +124,53 @@ const importObject = {
   let wasmMemorySz = memory.buffer.byteLength / (1024 * 1024);
   console.log('WASM memory MB:', wasmMemorySz);
 
+  function ModalWrap(props) {
+    let inner = null;
+    let className = null;
+    if (props.stage === 'intro') {
+      inner = [
+        h('b', {}, 'Chasing Butterflies'),
+        h('br'),
+        h('br'),
+        'Press [Enter] or [Space] to start!',
+        h('br'),
+        h('br'),
+        `It's your sister's birthday and you want to find the perfect gift`,
+        h('br'),
+        h('br'),
+        `It's not that easy...`,
+        h('br'),
+        h('br'),
+        `You think long and hard and...`,
+        h('br'),
+        `decide to catch all the butterflies in the garden`,
+        h('br'),
+        h('br'),
+        `You hope she'll appreciate the gift`,
+      ];
+      className = 'open';
+    } else if (props.stage === 'won') {
+      const time1 = props.foundNet
+        ? Math.round((props.foundNet.getTime() - props.startTime.getTime()) / 60000)
+        : false;
+      const time2 = Math.round((new Date().getTime() - props.startTime.getTime()) / 60000);
+      inner = [
+        'You caught all the butterflies!',
+        h('br'),
+        h('br'),
+        time1 ? `You found the butterfly net in ${time1} minutes` : '',
+        h('br'),
+        h('br'),
+        `You finished the game in ${props.turns} turns and ${time2} minutes`,
+        h('br'),
+        h('br'),
+        'A Chasing Butterflies Game - made by Cristi Constantin',
+      ];
+      className = 'open';
+    }
+    return h('div', { id: 'modalWrap', className }, inner);
+  }
+
   class GameGrid extends Component {
     onMouseOver(ev) {
       const tgt = ev.target;
@@ -179,13 +231,22 @@ const importObject = {
   }
 
   class App extends Component {
-    state = { turns: 0, foundNet: null, auto: false };
+    state = { stage: 'intro', turns: 0, startTime: new Date(), foundNet: null, auto: false };
 
     onKeyPressed = throttle(
       50,
       (ev) => {
         // large switch to handle user input
         let ok = false;
+        if (this.state.stage === 'won') {
+          return;
+        }
+        if (this.state.stage === 'intro') {
+          if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') {
+            this.setState({ stage: null });
+          }
+          return;
+        }
         if (ev.shiftKey && ev.key === ' ') {
           // wait until stopped
           if (this.state.auto) {
@@ -226,9 +287,7 @@ const importObject = {
       if (k === 'foundNet') {
         this.state.foundNet = new Date();
       } else if (k === 'gameWon') {
-        console.log('You won!!!');
-        console.log('Found net:', this.state.foundNet);
-        console.log('Total turns:', this.state.turns);
+        this.setState({ stage: 'won' });
       }
     };
 
@@ -242,7 +301,7 @@ const importObject = {
     }
 
     render() {
-      return [h(GameGrid), h(GameScore), h(GameLogs), h(GameHelp)];
+      return [ModalWrap(this.state), h(GameGrid), h(GameScore), h(GameLogs), h(GameHelp)];
     }
   }
 

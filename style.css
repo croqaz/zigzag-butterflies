@@ -12,7 +12,6 @@ html, body, div, table {
 	margin: 0;
 	padding: 0;
 }
-
 body {
 	max-height: 99.9vh;
 	display: grid;
@@ -22,6 +21,29 @@ body {
 	grid-template-areas:
 		"a b"
 		"c d";
+}
+
+#modalWrap {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: auto;
+  color: #eef;
+  padding-top: 40vh;
+  background-color: rgba(0,0,0,0.1);
+  opacity: 0;
+  transform: scale(0.9, 0.9);
+  transition: all 0.44s ease-in-out;
+  text-align: center;
+  z-index: -1;
+}
+#modalWrap.open {
+  background-color: rgba(0,0,0,0.9);
+  opacity: 0.8;
+  transform: scale(1, 1);
+  height: 99.9%;
+  z-index: 999;
 }
 
 #game {

@@ -96,9 +96,16 @@ function _nrToButterfly(nr) {
   return name;
 }
 
+let foundNet = false;
+
 export function nrToStat(nr) {
-  // (nr === 2) // ignore
+  /*
+   * Convert a number from the WASM game,
+   * into an internal event name.
+   */
+  // (nr === 2) // ignore emptyChest
   if (nr === 1) {
+    foundNet = true;
     return 'foundNet';
   }
   // (nr >= 10 && nr <= 14) // ignore
@@ -111,6 +118,10 @@ export function nrToStat(nr) {
 }
 
 export function nrToLog(nr) {
+  /*
+   * Convert a number from the WASM game,
+   * into a human readable log description.
+   */
   if (nr === 1) {
     return 'You find a butterfly net!';
   }
@@ -130,9 +141,13 @@ export function nrToLog(nr) {
       else if (x < 0.8) msg = `You fail to catch the delicate ${name} butterfly...`;
       else msg = `Despite your best efforts, you miss the ${name} butterfly...`;
     } else {
-      msg = `You catch the ${name} butterfly!`;
+      if (foundNet) msg = `You catch the ${name} butterfly with your net!`;
+      else msg = `You catch the ${name} butterfly with your bare hands!`;
     }
     return msg;
+  }
+  if (nr === 777) {
+    return 'You found all the butterflies!!!';
   }
   console.error(`Unknown event: ${nr}!`);
 }
