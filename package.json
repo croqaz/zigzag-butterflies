@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "esbuild": "0.17.17",
-    "prettier": "2.8.x",
+    "prettier": "3.3.x",
     "wasm-opt": "1.4.x"
   },
   "engines": {

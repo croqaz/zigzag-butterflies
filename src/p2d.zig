@@ -36,9 +36,9 @@ pub const Point = struct {
 
     pub inline fn isWithin(self: *const Point, topLeft: *const Point, botRight: *const Point) bool {
         return (self.x >= topLeft.x and
-            self.x <= botRight.x and
+            self.x < botRight.x and
             self.y >= topLeft.y and
-            self.y <= botRight.y);
+            self.y < botRight.y);
     }
 
     pub fn eq(self: *const Point, other: *const Point) bool {

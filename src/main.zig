@@ -19,7 +19,7 @@ pub const Game = struct {
     // viewPort logic
     vw: ViewPort = ViewPort{},
     // rendered grid
-    grid: [cfg.viewSize]u16 = [_]u16{32} ** cfg.viewSize,
+    grid: [cfg.viewSize]u16 = undefined,
     // inspect at coord
     inspect: [2]u16 = undefined,
 

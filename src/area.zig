@@ -46,6 +46,7 @@ pub const Area = struct {
 
         var j: u8 = 0;
         i = 0;
+        // 10 chests
         while (i < 10) : (i += 1) {
             var chest = Thing{ .chest = things.Chest{ .id = j, .xy = self.getRandomCoord() } };
             if (i == 7) { // lucky!
@@ -55,12 +56,14 @@ pub const Area = struct {
             j += 1;
         }
         i = 0;
+        // 12 gray butterflies
         while (i < 12) : (i += 1) {
             const xy = self.getRandomCoord();
             self.ents[j] = Thing{ .butter = things.Butterfly.newGrayButterfly(j, xy) };
             j += 1;
         }
         i = 0;
+        // 10 blue butterflies
         while (i < 10) : (i += 1) {
             const xy = self.getRandomCoord();
             self.ents[j] = Thing{ .butter = things.Butterfly.newBlueButterfly(j, xy) };
