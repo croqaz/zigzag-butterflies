@@ -13,7 +13,7 @@
     "start": "npx serve ."
   },
   "dependencies": {
-    "nanobus": "4.5.x",
+    "nanoevents": "9.x",
     "preact": "10.22.x",
     "throttle-debounce": "5.0.x"
   },
